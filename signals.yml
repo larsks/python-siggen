@@ -1,0 +1,29 @@
+---
+# Which midi device to use
+device: nanoKONTROL2 MIDI 1
+
+# Map MIDI control change messages to actions
+controls:
+  sine:
+    freq: 16
+    volume: 102
+    mute: 48
+
+  square:
+    freq: 17
+    volume: 103
+    mute: 49
+
+  triangle:
+    freq: 18
+    volume: 104
+    mute: 50
+
+  sawtooth:
+    freq: 19
+    volume: 105
+    mute: 51
+
+  stop: 42
+  play: 41
+  record: 45

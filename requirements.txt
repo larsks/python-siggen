@@ -1,0 +1,5 @@
+pyaudio
+mido
+numpy
+scipy
+PyYAML
