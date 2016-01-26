@@ -3,11 +3,11 @@
 from __future__ import division
 
 import argparse
+import ctypes
 import logging
 import math
 import mido
 import numpy
-import pyaudio
 import Queue as queue
 import scipy.signal
 import signal
@@ -16,15 +16,32 @@ import time
 import yaml
 
 LOG = logging.getLogger(__name__)
-AUDIO = pyaudio.PyAudio()
-
 FREQ_A0 = 27.5
 FREQ_C8 = 4186
-
 QUIT = False
+
+#
+# The following block of cruft supresses a variety of unhelpful
+# warnings from ALSA.
+#
+
+ERROR_HANDLER_FUNC = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_int,
+                                      ctypes.c_char_p, ctypes.c_int,
+                                      ctypes.c_char_p)
+
+
+def py_error_handler(filename, line, function, err, fmt):
+    pass
+
+c_error_handler = ERROR_HANDLER_FUNC(py_error_handler)
+asound = ctypes.cdll.LoadLibrary('libasound.so.2')
+asound.snd_lib_error_set_handler(c_error_handler)
+
+import pyaudio
 
 class Synth(threading.Thread):
     def __init__(self,
+                 pa,
                  rate=16000,
                  freq_low=FREQ_A0,
                  freq_high=FREQ_C8):
@@ -44,7 +61,7 @@ class Synth(threading.Thread):
         self.play = threading.Event()
         self.q = queue.Queue()
 
-        self.stream = AUDIO.open(format=pyaudio.paFloat32,
+        self.stream = pa.open(format=pyaudio.paFloat32,
                                  channels=1,
                                  rate=self.rate,
                                  output=True)
@@ -222,12 +239,13 @@ def main():
         config = yaml.load(fd)
 
     dev = mido.open_input(config['device'])
+    pa = pyaudio.PyAudio()
 
     synths = {
-        'sine':  Sine(),
-        'square': Square(),
-        'triangle': Triangle(),
-        'sawtooth': Sawtooth(),
+        'sine':  Sine(pa),
+        'square': Square(pa),
+        'triangle': Triangle(pa),
+        'sawtooth': Sawtooth(pa),
     }
 
     controls = {}
