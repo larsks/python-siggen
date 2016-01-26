@@ -2,18 +2,18 @@
 
 from __future__ import division
 
-import os
-import sys
 import argparse
 import logging
-import yaml
-import mido
-import pyaudio
 import math
-import threading
-import Queue as queue
+import mido
 import numpy
+import pyaudio
+import Queue as queue
 import scipy.signal
+import signal
+import threading
+import time
+import yaml
 
 LOG = logging.getLogger(__name__)
 AUDIO = pyaudio.PyAudio()
@@ -21,6 +21,7 @@ AUDIO = pyaudio.PyAudio()
 FREQ_A0 = 27.5
 FREQ_C8 = 4186
 
+QUIT = False
 
 class Synth(threading.Thread):
     def __init__(self,
@@ -123,6 +124,8 @@ class Synth(threading.Thread):
     def ctrl_stop(self):
         self.log.info('setting quit flag')
         self.quit.set()
+        # This wakes up any sleepers
+        self.play.set()
         self.join()
 
     def ctrl_volume(self, value):
@@ -203,6 +206,13 @@ def parse_args():
     return p.parse_args()
 
 
+def set_quit_flag(*args):
+    global QUIT
+
+    LOG.debug('setting global quit flag')
+    QUIT = True
+
+
 def main():
     args = parse_args()
     logging.basicConfig(
@@ -231,17 +241,28 @@ def main():
 
         synths[synth].start()
 
-    while True:
-        event = dev.receive()
-        LOG.debug('event: %s', event)
-        if event.control in controls:
-            controls[event.control](event.value)
-        elif event.control == int(config['controls']['play']):
-            for synth in synths:
-                synths[synth].ctrl_play()
-        elif event.control == int(config['controls']['stop']):
-            for synth in synths:
-                synths[synth].ctrl_pause()
+    signal.signal(signal.SIGINT,
+                  set_quit_flag)
+
+    while not QUIT:
+        for event in dev.iter_pending():
+            LOG.debug('event: %s', event)
+            if event.control in controls:
+                controls[event.control](event.value)
+            elif event.control == int(config['controls']['play']):
+                for synth in synths:
+                    synths[synth].ctrl_play()
+            elif event.control == int(config['controls']['stop']):
+                for synth in synths:
+                    synths[synth].ctrl_pause()
+
+        time.sleep(0.1)
+
+    LOG.info('stopping all synths')
+    for synth in synths:
+        synths[synth].ctrl_stop()
+
+    LOG.info('all done.')
 
 if __name__ == '__main__':
     main()
