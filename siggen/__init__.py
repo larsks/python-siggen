@@ -3,7 +3,6 @@
 from __future__ import division
 
 import argparse
-import ctypes
 import logging
 import math
 import mido
@@ -14,30 +13,14 @@ import signal
 import threading
 import time
 import yaml
+from . import mute_alsa_errors  # NOQA
+import pyaudio
 
 LOG = logging.getLogger(__name__)
 FREQ_A0 = 27.5
 FREQ_C8 = 4186
 QUIT = False
 
-#
-# The following block of cruft supresses a variety of unhelpful
-# warnings from ALSA.
-#
-
-ERROR_HANDLER_FUNC = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_int,
-                                      ctypes.c_char_p, ctypes.c_int,
-                                      ctypes.c_char_p)
-
-
-def py_error_handler(filename, line, function, err, fmt):
-    pass
-
-c_error_handler = ERROR_HANDLER_FUNC(py_error_handler)
-asound = ctypes.cdll.LoadLibrary('libasound.so.2')
-asound.snd_lib_error_set_handler(c_error_handler)
-
-import pyaudio
 
 class Synth(threading.Thread):
     def __init__(self,
@@ -62,9 +45,9 @@ class Synth(threading.Thread):
         self.q = queue.Queue()
 
         self.stream = pa.open(format=pyaudio.paFloat32,
-                                 channels=1,
-                                 rate=self.rate,
-                                 output=True)
+                              channels=1,
+                              rate=self.rate,
+                              output=True)
 
     def init_log(self):
         self.log = logging.getLogger('%s.%s' % (self.__class__.__name__,
