@@ -21,72 +21,35 @@ FREQ_A0 = 27.5
 FREQ_C8 = 4186
 QUIT = False
 
+class Logger(object):
+    def init_log(self):
+        self.log = logging.getLogger('%s.%s' % (self.__class__.__name__,
+                                                __name__))
 
-class Synth(threading.Thread):
+
+class Passthru(threading.Thread, Logger):
     def __init__(self,
                  pa,
-                 rate=16000,
-                 freq_low=FREQ_A0,
-                 freq_high=FREQ_C8,
-                 tuning=0):
+                 rate=44100):
 
-        super(Synth, self).__init__()
+        super(Passthru, self).__init__()
 
         self.init_log()
 
-        self.freq_low = freq_low
-        self.freq_high = freq_high
-        self.tuning = tuning
-
-        self.volume = 0
-        self.freq = 0
+        self.volume = 1
         self.rate = rate
-
-        self.quit = threading.Event()
-        self.play = threading.Event()
         self.q = queue.Queue()
 
         self.stream = pa.open(format=pyaudio.paFloat32,
                               channels=1,
                               rate=self.rate,
-                              output=True)
+                              output=True,
+                              input=True)
 
-    def init_log(self):
-        self.log = logging.getLogger('%s.%s' % (self.__class__.__name__,
-                                                __name__))
-
-    def calc_freq(self, value):
-        freq = self.freq_low + (
-            self.freq/127.0) * (self.freq_high - self.freq_low)
-        self.log.debug('freq control value -> freq %f',
-                       freq)
-        return freq
-
-    def calc_key(self, value):
-        key = int((self.freq/127.0) * 88)
-        self.log.debug('got key = %d', key)
-        freq = 2 ** ((key-49)/12) * 440
-        self.log.debug('freq control value -> key %d -> freq %f',
-                       value, freq)
-        return freq
-
-    def _waveform(self, rate, factor, period):
-        return numpy.sin(numpy.arange(rate) * factor)[:period]
-
-    def generate(self):
-        freq = self.calc_key(self.freq)
-        period = int(self.rate/freq)
-        volume = (self.volume/127.0) * 2
-        factor = float(freq) * (math.pi * 2) / self.rate
-
-        chunk = self._waveform(self.rate, factor, period)
-
-        chunk = chunk * volume
-        self.waveform = chunk.astype(numpy.float32).tostring()
+        self.play = threading.Event()
+        self.quit = threading.Event()
 
     def run(self):
-        self.generate()
-
         self.log.info('starting main loop')
 
         while not self.quit.is_set():
@@ -101,7 +64,121 @@ class Synth(threading.Thread):
                 except queue.Empty:
                     pass
 
-                self.stream.write(self.waveform)
+                data = self.stream.read(1024)
+#                data = numpy.fromstring(data, numpy.int16)
+#                data = (data * self.volume).astype(numpy.int16).tostring()
+                self.stream.write(data)
+
+            self.stream.stop_stream()
+
+            if self.quit.is_set():
+                break
+
+        self.log.info('exit main loop')
+
+    def _set_volume(self, value):
+        self.log.debug('setting volume to %d', value)
+        self.volume = value
+
+    def handle_msg(self, msg):
+        if msg[0] == 'v':
+            self._set_volume(msg[1])
+
+    def ctrl_volume(self, value):
+        volume = (value/127.0) * 2
+        LOG.debug('%s request set volume to %d', self, volume)
+        self.q.put(('v', volume))
+
+    def ctrl_play(self):
+        self.log.info('playing')
+        self.play.set()
+
+    def ctrl_pause(self):
+        self.log.info('pausing')
+        self.play.clear()
+
+    def ctrl_mute(self, value):
+        if value:
+            self.ctrl_pause()
+        else:
+            self.ctrl_play()
+
+    def ctrl_stop(self):
+        self.log.info('setting quit flag')
+        self.quit.set()
+        # This wakes up any sleepers
+        self.play.set()
+        self.join()
+
+
+class Synth(threading.Thread, Logger):
+    def __init__(self,
+                 pa,
+                 rate=44100,
+                 freq_low=FREQ_A0,
+                 freq_high=FREQ_C8,
+                 tuning=0):
+
+        super(Synth, self).__init__()
+
+        self.init_log()
+
+        self.freq_low = freq_low
+        self.freq_high = freq_high
+        self.tuning = tuning
+
+        self.volume = 0
+        self.freq = freq_low
+        self.rate = rate
+
+        self.quit = threading.Event()
+        self.play = threading.Event()
+        self.q = queue.Queue()
+
+        self.stream = pa.open(format=pyaudio.paFloat32,
+                              channels=1,
+                              rate=self.rate,
+                              output=True)
+
+    def calc_key(self, value):
+        key = int((value/127.0) * 88)
+        self.log.debug('got key = %d', key)
+        freq = 2 ** ((key-49)/12) * 440
+        self.log.info('freq control value %d -> key %d -> freq %f',
+                      value, key, freq)
+        return freq
+
+    def waveform(self, rate, factor, period):
+        return numpy.sin(numpy.arange(rate) * factor)[:period]
+
+    def update_freq(self):
+        period = int(self.rate/self.freq)
+        factor = float(self.freq) * (math.pi * 2) / self.rate
+
+        self._base_waveform = self.waveform(self.rate, factor, period)
+        self.update_volume()
+
+    def update_volume(self):
+        self._active_waveform = (self._base_waveform * self.volume).astype(
+            numpy.float32).tostring()
+
+    def run(self):
+        self.update_freq()
+        self.log.info('starting main loop')
+
+        while not self.quit.is_set():
+            self.play.wait()
+            self.stream.start_stream()
+
+            while not self.quit.is_set() and self.play.is_set():
+                try:
+                    while True:
+                        msg = self.q.get(False)
+                        self.handle_msg(msg)
+                except queue.Empty:
+                    pass
+
+                self.stream.write(self._active_waveform)
 
             self.stream.stop_stream()
 
@@ -117,21 +194,21 @@ class Synth(threading.Thread):
             self._set_freq(msg[1])
 
     def _set_volume(self, value):
-        self.log.info('setting volume to %d', value)
+        self.log.debug('setting volume to %d', value)
         self.volume = value
-        self.generate()
+        self.update_volume()
 
     def _set_freq(self, value):
-        self.log.info('setting frequency to %d', value)
+        self.log.debug('setting frequency to %d', value)
         self.freq = value
-        self.generate()
+        self.update_freq()
 
     def ctrl_play(self):
-        self.log.info('setting play flag')
+        self.log.info('playing')
         self.play.set()
 
     def ctrl_pause(self):
-        self.log.info('clearing play flag')
+        self.log.info('pausing')
         self.play.clear()
 
     def ctrl_mute(self, value):
@@ -148,14 +225,14 @@ class Synth(threading.Thread):
         self.join()
 
     def ctrl_volume(self, value):
-        self.volume = value
-        self.generate()
-        LOG.info('%s request set volume to %d', self, self.volume)
+        volume = (value/127.0) * 2
+        LOG.debug('%s request set volume to %d', self, volume)
+        self.q.put(('v', volume))
 
     def ctrl_freq(self, value):
-        self.freq = value
-        self.generate()
-        LOG.info('%s request set freq to %d', self, self.freq)
+        freq = self.calc_key(value)
+        LOG.debug('%s request set freq to %f', self, freq)
+        self.q.put(('f', freq))
 
     def __str__(self):
         return '<Synth "%s">' % self.__class__.__name__
@@ -166,19 +243,19 @@ class Sine(Synth):
 
 
 class Square(Synth):
-    def _waveform(self, rate, factor, period):
+    def waveform(self, rate, factor, period):
         return scipy.signal.square(
             numpy.arange(rate) * factor)[:period]
 
 
 class Triangle(Synth):
-    def _waveform(self, rate, factor, period):
+    def waveform(self, rate, factor, period):
         return scipy.signal.sawtooth(
             numpy.arange(rate) * factor, width=0.5)[:period]
 
 
 class Sawtooth(Synth):
-    def _waveform(self, rate, factor, period):
+    def waveform(self, rate, factor, period):
         return scipy.signal.sawtooth(
             numpy.arange(rate) * factor)[:period]
 
@@ -221,10 +298,10 @@ def main():
     pa = pyaudio.PyAudio()
 
     synths = {
-        'sine':  Sine(pa),
-        'square': Square(pa),
-        'triangle': Triangle(pa),
-        'sawtooth': Sawtooth(pa),
+        'sine':  Sine(pa, rate=config['rate']),
+        'square': Square(pa, rate=config['rate']),
+        'triangle': Triangle(pa, rate=config['rate']),
+        'sawtooth': Sawtooth(pa, rate=config['rate']),
     }
 
     controls = {}
@@ -247,11 +324,13 @@ def main():
             if event.control in controls:
                 controls[event.control](event.value)
             elif event.control == int(config['controls']['play']):
-                for synth in synths:
-                    synths[synth].ctrl_play()
+                if event.value:
+                    for synth in synths:
+                        synths[synth].ctrl_play()
             elif event.control == int(config['controls']['stop']):
-                for synth in synths:
-                    synths[synth].ctrl_pause()
+                if event.value:
+                    for synth in synths:
+                        synths[synth].ctrl_pause()
 
         time.sleep(0.1)
 

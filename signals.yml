@@ -1,9 +1,14 @@
 ---
 # Which midi device to use
 device: nanoKONTROL2 MIDI 1
+rate: 44100
 
 # Map MIDI control change messages to actions
 controls:
+  passthru:
+    volume: 106
+    mute: 52
+
   sine:
     freq: 16
     volume: 102
