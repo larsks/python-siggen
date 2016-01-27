@@ -70,13 +70,17 @@ class Synth(threading.Thread):
                        value, freq)
         return freq
 
+    def _waveform(self, rate, factor, period):
+        return numpy.sin(numpy.arange(rate) * factor)[:period]
+
     def generate(self):
         freq = self.calc_key(self.freq)
         period = int(self.rate/freq)
         volume = (self.volume/127.0) * 2
-
         factor = float(freq) * (math.pi * 2) / self.rate
-        chunk = numpy.sin(numpy.arange(self.rate) * factor)[:period]
+
+        chunk = self._waveform(self.rate, factor, period)
+
         chunk = chunk * volume
         self.waveform = chunk.astype(numpy.float32).tostring()
 
@@ -162,42 +166,21 @@ class Sine(Synth):
 
 
 class Square(Synth):
-    def generate(self):
-        freq = self.calc_key(self.freq)
-        period = int(self.rate/freq)
-        volume = (self.volume/127.0)
-
-        factor = float(freq) * (math.pi * 2) / self.rate
-        chunk = scipy.signal.square(numpy.arange(self.rate) * factor)[:period]
-        chunk = chunk * volume
-        self.waveform = chunk.astype(numpy.float32).tostring()
+    def _waveform(self, rate, factor, period):
+        return scipy.signal.square(
+            numpy.arange(rate) * factor)[:period]
 
 
 class Triangle(Synth):
-    def generate(self):
-        freq = self.calc_key(self.freq)
-        period = int(self.rate/freq)
-        volume = (self.volume/127.0)
-
-        factor = float(freq) * (math.pi * 2) / self.rate
-        chunk = scipy.signal.sawtooth(numpy.arange(self.rate) * factor,
-                                      width=0.5)[:period]
-        chunk = chunk * volume
-        self.waveform = chunk.astype(numpy.float32).tostring()
+    def _waveform(self, rate, factor, period):
+        return scipy.signal.sawtooth(
+            numpy.arange(rate) * factor, width=0.5)[:period]
 
 
 class Sawtooth(Synth):
-    def generate(self):
-        freq = self.freq_low + (self.freq/127.0) * (self.freq_high -
-                                                    self.freq_low)
-        period = int(self.rate/freq)
-        volume = (self.volume/127.0)
-
-        factor = float(freq) * (math.pi * 2) / self.rate
-        chunk = (scipy.signal.sawtooth(numpy.arange(self.rate)
-                                       * factor)[:period])
-        chunk = chunk * volume
-        self.waveform = chunk.astype(numpy.float32).tostring()
+    def _waveform(self, rate, factor, period):
+        return scipy.signal.sawtooth(
+            numpy.arange(rate) * factor)[:period]
 
 
 def parse_args():
