@@ -27,7 +27,8 @@ class Synth(threading.Thread):
                  pa,
                  rate=16000,
                  freq_low=FREQ_A0,
-                 freq_high=FREQ_C8):
+                 freq_high=FREQ_C8,
+                 tuning=0):
 
         super(Synth, self).__init__()
 
@@ -35,6 +36,7 @@ class Synth(threading.Thread):
 
         self.freq_low = freq_low
         self.freq_high = freq_high
+        self.tuning = tuning
 
         self.volume = 0
         self.freq = 0
@@ -53,12 +55,25 @@ class Synth(threading.Thread):
         self.log = logging.getLogger('%s.%s' % (self.__class__.__name__,
                                                 __name__))
 
-    def generate(self):
-        freq = self.freq_low + (self.freq/127.0) * (self.freq_high -
-                                                    self.freq_low)
-        period = int(self.rate/freq)
+    def calc_freq(self, value):
+        freq = self.freq_low + (
+            self.freq/127.0) * (self.freq_high - self.freq_low)
+        self.log.debug('freq control value -> freq %f',
+                       freq)
+        return freq
 
-        volume = (self.volume/127.0)
+    def calc_key(self, value):
+        key = int((self.freq/127.0) * 88)
+        self.log.debug('got key = %d', key)
+        freq = 2 ** ((key-49)/12) * 440
+        self.log.debug('freq control value -> key %d -> freq %f',
+                       value, freq)
+        return freq
+
+    def generate(self):
+        freq = self.calc_key(self.freq)
+        period = int(self.rate/freq)
+        volume = (self.volume/127.0) * 2
 
         factor = float(freq) * (math.pi * 2) / self.rate
         chunk = numpy.sin(numpy.arange(self.rate) * factor)[:period]
@@ -148,8 +163,7 @@ class Sine(Synth):
 
 class Square(Synth):
     def generate(self):
-        freq = self.freq_low + (self.freq/127.0) * (self.freq_high -
-                                                    self.freq_low)
+        freq = self.calc_key(self.freq)
         period = int(self.rate/freq)
         volume = (self.volume/127.0)
 
@@ -161,8 +175,7 @@ class Square(Synth):
 
 class Triangle(Synth):
     def generate(self):
-        freq = self.freq_low + (self.freq/127.0) * (self.freq_high -
-                                                    self.freq_low)
+        freq = self.calc_key(self.freq)
         period = int(self.rate/freq)
         volume = (self.volume/127.0)
 
