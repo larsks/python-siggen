@@ -70,7 +70,7 @@ class Synth(threading.Thread, Logger):
         return funcs.sin(self.freq, self.rate)
 
     def update_freq(self):
-        self._base_waveform = self.waveform().tostring()
+        self._base_waveform = self.waveform()
         self.update_volume()
 
     def update_volume(self):
