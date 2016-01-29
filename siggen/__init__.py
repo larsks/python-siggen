@@ -224,6 +224,7 @@ def main():
     while True:
         try:
             dev = mido.open_input(config['device'])
+            break
         except IOError:
             if args.wait:
                 LOG.warn('waiting for device "%s"',
