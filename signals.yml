@@ -25,6 +25,11 @@ controls:
     volume: 105
     mute: 51
 
+  volume_right:
+    volume: 109
+  volume_left:
+    volume: 108
+
   stop: 42
   play: 41
   record: 45
