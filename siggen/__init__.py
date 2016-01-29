@@ -13,8 +13,10 @@ import signal
 import threading
 import time
 import yaml
-from . import mute_alsa_errors  # NOQA
 import pyaudio
+
+from . import mute_alsa_errors  # NOQA
+from . import funcs
 
 LOG = logging.getLogger(__name__)
 FREQ_A0 = 27.5
@@ -64,13 +66,11 @@ class Synth(threading.Thread, Logger):
                       value, key, freq)
         return freq
 
-    def waveform(self, period, factor):
-        return numpy.sin(numpy.arange(period) * factor)
+    def waveform(self):
+        return funcs.sin(self.freq, self.rate)
 
     def update_freq(self):
-        period = self.rate / self.freq
-        factor = self.freq * 2 * numpy.pi / self.rate
-        self._base_waveform = self.waveform(period, factor)
+        self._base_waveform = self.waveform().tostring()
         self.update_volume()
 
     def update_volume(self):
@@ -137,19 +137,18 @@ class Sine(Synth):
 
 
 class Square(Synth):
-    def waveform(self, period, factor):
-        return scipy.signal.square(numpy.arange(period) * factor)
+    def waveform(self):
+        return funcs.square(self.freq, self.rate)
 
 
 class Triangle(Synth):
-    def waveform(self, period, factor):
-        return scipy.signal.sawtooth(numpy.arange(period) * factor,
-                                     width=0.5)
+    def waveform(self):
+        return funcs.triangle(self.freq, self.rate)
 
 
 class Sawtooth(Synth):
-    def waveform(self, period, factor):
-        return scipy.signal.sawtooth(numpy.arange(period) * factor)
+    def waveform(self):
+        return funcs.sawtooth(self.freq, self.rate)
 
 
 def parse_args():
