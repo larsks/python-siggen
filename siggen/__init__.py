@@ -198,6 +198,10 @@ def parse_args():
     p.add_argument('--config', '-f',
                    default='signals.yml')
 
+    p.add_argument('--wait', '-w',
+                   action='store_true',
+                   help='wait for controller instead of failing')
+
     p.set_defaults(loglevel='WARN')
     return p.parse_args()
 
@@ -217,7 +221,17 @@ def main():
     with open(args.config) as fd:
         config = yaml.load(fd)
 
-    dev = mido.open_input(config['device'])
+    while True:
+        try:
+            dev = mido.open_input(config['device'])
+        except IOError:
+            if args.wait:
+                LOG.warn('waiting for device "%s"',
+                         config['device'])
+                time.sleep(1)
+            else:
+                raise
+
     pa = pyaudio.PyAudio()
 
     synths = {
