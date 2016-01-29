@@ -1,6 +1,7 @@
 ---
 # Which midi device to use
 device: nanoKONTROL2 MIDI 1
+rate: 44100
 
 # Map MIDI control change messages to actions
 controls:

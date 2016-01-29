@@ -236,10 +236,10 @@ def main():
     pa = pyaudio.PyAudio()
 
     synths = {
-        'sine':  Sine(pa),
-        'square': Square(pa),
-        'triangle': Triangle(pa),
-        'sawtooth': Sawtooth(pa),
+        'sine':  Sine(pa, rate=config['rate']),
+        'square': Square(pa, rate=config['rate']),
+        'triangle': Triangle(pa, rate=config['rate']),
+        'sawtooth': Sawtooth(pa, rate=config['rate']),
     }
 
     controls = {}
