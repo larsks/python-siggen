@@ -117,7 +117,7 @@ class Synth(threading.Thread, Logger):
         self.join()
 
     def ctrl_volume(self, value):
-        volume = (value/127.0) * 2
+        volume = (value/127.0)
         LOG.debug('%s set volume to %d', self, volume)
         self.volume = volume
         self.update_volume()
