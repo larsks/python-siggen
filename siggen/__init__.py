@@ -96,11 +96,11 @@ class Synth(threading.Thread, Logger):
         self.log.info('exit main loop')
 
     def ctrl_play(self):
-        self.log.info('playing')
+        self.log.warn('playing')
         self.play.set()
 
     def ctrl_pause(self):
-        self.log.info('pausing')
+        self.log.warn('pausing')
         self.play.clear()
 
     def ctrl_mute(self, value):
@@ -225,6 +225,7 @@ def main():
     signal.signal(signal.SIGINT,
                   set_quit_flag)
 
+    LOG.warn('siggen ready')
     while not QUIT:
         for event in dev.iter_pending():
             LOG.debug('event: %s', event)
@@ -245,7 +246,7 @@ def main():
     for synth in synths:
         synths[synth].ctrl_stop()
 
-    LOG.info('all done.')
+    LOG.warn('all done.')
 
 if __name__ == '__main__':
     main()
