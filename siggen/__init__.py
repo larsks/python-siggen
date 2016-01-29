@@ -64,14 +64,13 @@ class Synth(threading.Thread, Logger):
                       value, key, freq)
         return freq
 
-    def waveform(self, rate, factor, period):
-        return numpy.sin(numpy.arange(rate) * factor)[:period]
+    def waveform(self, period, factor):
+        return numpy.sin(numpy.arange(period) * factor)
 
     def update_freq(self):
-        period = int(self.rate/self.freq)
-        factor = float(self.freq) * (math.pi * 2) / self.rate
-
-        self._base_waveform = self.waveform(self.rate, factor, period)
+        period = self.rate / self.freq
+        factor = self.freq * 2 * numpy.pi / self.rate
+        self._base_waveform = self.waveform(period, factor)
         self.update_volume()
 
     def update_volume(self):
@@ -138,21 +137,19 @@ class Sine(Synth):
 
 
 class Square(Synth):
-    def waveform(self, rate, factor, period):
-        return scipy.signal.square(
-            numpy.arange(rate) * factor)[:period]
+    def waveform(self, period, factor):
+        return scipy.signal.square(numpy.arange(period) * factor)
 
 
 class Triangle(Synth):
-    def waveform(self, rate, factor, period):
-        return scipy.signal.sawtooth(
-            numpy.arange(rate) * factor, width=0.5)[:period]
+    def waveform(self, period, factor):
+        return scipy.signal.sawtooth(numpy.arange(period) * factor,
+                                     width=0.5)
 
 
 class Sawtooth(Synth):
-    def waveform(self, rate, factor, period):
-        return scipy.signal.sawtooth(
-            numpy.arange(rate) * factor)[:period]
+    def waveform(self, period, factor):
+        return scipy.signal.sawtooth(numpy.arange(period) * factor)
 
 
 def parse_args():
