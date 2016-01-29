@@ -1,0 +1,11 @@
+[Unit]
+Description=Signal generator
+After=sound.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/siggen --wait -v -f /etc/siggen.yml
+
+[Install]
+WantedBy=multi-user.target
+
