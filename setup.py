@@ -10,4 +10,4 @@ setup(name='siggen',
       version='0.1',
       packages=find_packages(),
       install_requires=requires,
-      entry_points={'console_scripts': ['siggen = siggen:main']})
+      entry_points={'console_scripts': ['siggen = siggen.main:main']})
