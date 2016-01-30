@@ -3,3 +3,4 @@ mido
 numpy
 scipy
 PyYAML
+pyo
