@@ -13,7 +13,27 @@ DEFAULT_MIDI_DEVICE = 'nanoKONTROL2 MIDI 1'
 LOG = logging.getLogger(__name__)
 
 
-class BootFailed(Exception):
+class SynthError(Exception):
+    pass
+
+
+class BootFailed(SynthError):
+    pass
+
+
+class MissingDevice(SynthError):
+    pass
+
+
+class MissingPAInputDevice(MissingDevice):
+    pass
+
+
+class MissingPAOutputDevice(MissingDevice):
+    pass
+
+
+class MissingPMInputDevice(MissingDevice):
     pass
 
 
@@ -105,21 +125,21 @@ class Synth(object):
             if name in info['name']:
                 return index
 
-        raise KeyError(name)
+        raise MissingPAInputDevice(name)
 
     def pa_output_device_by_name(self, want):
         for index, info in self.pa_outputs.items():
             if want in info['name']:
                 return index
 
-        raise KeyError(want)
+        raise MissingPAOutputDevice(want)
 
     def pm_input_device_by_name(self, want):
         for index, name in self.pm_inputs.items():
             if want in name:
                 return index
 
-        raise KeyError(want)
+        raise MissingPMInputDevice(want)
 
     def create_synth_sine(self, name):
         self.log.debug('creating synth %s', name)
