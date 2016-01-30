@@ -146,8 +146,7 @@ class Synth(object):
 
     def create_synth_passthrough(self, name):
         self.log.debug('creating synth %s', name)
-        self.synths[name] = pyo.Input(
-            chnl=0, mul=0).mix(2)
+        self.synths[name] = pyo.Input().mix(2, mul=0)
 
     def init_synths(self):
         self.synths = {}
