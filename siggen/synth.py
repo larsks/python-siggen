@@ -209,7 +209,7 @@ class Synth(object):
         self.log.info('starting all synths')
         if value:
             for synth in self.synths:
-                self.synths[synth].start()
+                self.synths[synth].out()
 
     def ctrl_stop(self, value):
         self.log.info('stopping all synths')
