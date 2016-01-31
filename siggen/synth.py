@@ -5,9 +5,6 @@ from functools import partial
 from pyalsa import alsamixer
 import logging
 import pyo
-import threading
-
-from . import tables
 
 FREQ_A0 = 27.5
 FREQ_C8 = 4186
@@ -56,7 +53,7 @@ class Synth(object):
     synth_names = ['sine', 'square', 'triangle', 'sawtooth', 'passthrough']
 
     def __init__(self,
-                 midiDevice=DEFAULT_MIDI_DEVICE,
+                 midiDevice=None,
                  outputDevice=None,
                  outputDeviceChannels=None,
                  inputDevice=None,
@@ -163,14 +160,15 @@ class Synth(object):
 
     def create_synth_sawtooth(self, name):
         self.log.debug('creating synth %s', name)
-        t = pyo.SawTable()
+        t = pyo.LinTable([(0, -1), (8191, 1)])
         self.synths[name] = pyo.Osc(table=t,
                                     mul=0,
                                     freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_triangle(self, name):
         self.log.debug('creating synth %s', name)
-        t = tables.TriangleTable()
+        t = pyo.LinTable([(0, 0), (8192//4, 1), (8192//2, 0),
+                          (3*(8192//4), -1), (8191, 0)])
         self.synths[name] = pyo.Osc(table=t,
                                     mul=0,
                                     freq=[FREQ_C4, FREQ_C4])
