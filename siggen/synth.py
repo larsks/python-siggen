@@ -215,3 +215,6 @@ class Synth(object):
         self.log.debug('midi control %d value %d', control, value)
         if control in self._ctrl:
             self._ctrl[control](value)
+
+    def stop(self):
+        self.server.shutdown()
