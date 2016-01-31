@@ -49,7 +49,7 @@ class Synth(object):
     synth_names = ['sine', 'square', 'triangle', 'sawtooth', 'passthrough']
 
     def __init__(self,
-                 midiController=DEFAULT_MIDI_DEVICE,
+                 midiDevice=DEFAULT_MIDI_DEVICE,
                  outputDevice=None,
                  outputDeviceChannels=None,
                  inputDevice=None,
@@ -63,7 +63,7 @@ class Synth(object):
         self.mixers = mixers
         self.inputDevice = inputDevice
         self.outputDevice = outputDevice
-        self.midiController = midiController
+        self.midiDevice = midiDevice
 
         self.discover_devices()
 
@@ -89,12 +89,12 @@ class Synth(object):
 
             self.server.setInputDevice(inputDevice)
 
-        if midiController is not None:
-            if isinstance(midiController, string_types):
-                midiController = self.pm_input_device_by_name(
-                    midiController)
+        if midiDevice is not None:
+            if isinstance(midiDevice, string_types):
+                midiDevice = self.pm_input_device_by_name(
+                    midiDevice)
 
-            self.server.setMidiInputDevice(midiController)
+            self.server.setMidiInputDevice(midiDevice)
 
         self.server.boot()
         self.server.start()
