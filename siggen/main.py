@@ -81,6 +81,7 @@ def main():
         except synth.MissingDevice as err:
             if args.wait:
                 LOG.warn('waiting for %s', err)
+                time.sleep(1)
             else:
                 raise
 
