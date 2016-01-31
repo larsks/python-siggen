@@ -31,13 +31,7 @@ controls:
     volume: 109
 
 mixers:
-  vol1:
-    device: default
-    element: Master
-    channel: FRONT_LEFT
-    volume: 108
-  vol2:
-    device: default
-    element: Master
-    channel: FRONT_RIGHT
-    volume: 109
+  default:
+    Master:
+      FRONT_LEFT: 108
+      FRONT_LEFT: 109
