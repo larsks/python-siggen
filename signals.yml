@@ -3,10 +3,10 @@
 rate: 44100
 
 devices:
-  midi:
-    name: nanoKONTROL2 MIDI 1
+#  midi:
+#    name: nanoKONTROL2 MIDI 1
   input:
-    name: USB audio CODEC
+    name: Scarlett 2i2 USB
     channels: 1
 
 # Map MIDI control change messages to actions
@@ -28,10 +28,10 @@ controls:
     volume: 105
 
   passthrough:
-    volume: 109
+    volume: 107
 
 mixers:
   default:
     Master:
       FRONT_LEFT: 108
-      FRONT_LEFT: 109
+      FRONT_RIGHT: 109

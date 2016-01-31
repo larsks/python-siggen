@@ -217,6 +217,22 @@ class Synth(object):
             for synth in self.synths:
                 self.synths[synth].stop()
 
+    def init_mixer_device(self, tag, mixer, element, channel, control,
+                          capture=False):
+        self.log.debug('creating mixer tag = %s', tag)
+
+        self._mixer[tag] = {
+            'mixer': mixer,
+            'element': element,
+            'capture': capture,
+            'channel': alsamixer.channel_id[channel],
+            'range': element.get_volume_range(),
+        }
+
+        self.register_midi_listener(
+            control,
+            partial(self.ctrl_mixer, tag))
+
     def init_mixer(self):
         self._mixer = {}
         self.log.debug('start init mixers')
@@ -241,19 +257,7 @@ class Synth(object):
                         element_name,
                         channel)
 
-                    self.log.debug('mixer tag = %s', tag)
-
-                    self._mixer[tag] = {
-                        'mixer': m,
-                        'element': e,
-                        'capture': False,
-                        'channel': alsamixer.channel_id[channel],
-                        'range': e.get_volume_range(),
-                    }
-
-                    self.register_midi_listener(
-                        control,
-                        partial(self.ctrl_mixer, tag))
+                    self.init_mixer_device(tag, m, e, channel, control)
 
                 for channel, control in element.get('capture', {}).items():
                     tag = '%s.%s.%s.in' % (
@@ -261,19 +265,8 @@ class Synth(object):
                         element_name,
                         channel)
 
-                    self.log.debug('mixer tag = %s', tag)
-
-                    self._mixer[tag] = {
-                        'mixer': m,
-                        'element': e,
-                        'capture': True,
-                        'channel': alsamixer.channel_id[channel],
-                        'range': e.get_volume_range(True),
-                    }
-
-                    self.register_midi_listener(
-                        control,
-                        partial(self.ctrl_mixer, tag))
+                    self.init_mixer_device(tag, m, e, channel, control,
+                                           capture=True)
 
         self.log.debug('done init mixers')
 
