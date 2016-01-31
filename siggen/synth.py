@@ -219,7 +219,29 @@ class Synth(object):
                     self.controls[synth]['freq'],
                     partial(self.ctrl_freq, synth))
 
+        if 'play' in self.controls:
+            self.register_midi_listener(
+                self.controls['play'],
+                self.ctrl_play)
+
+        if 'stop' in self.controls:
+            self.register_midi_listener(
+                self.controls['stop'],
+                self.ctrl_stop)
+
         self.log.debug('done init controls')
+
+    def ctrl_play(self, value):
+        self.log.info('starting all synths')
+        if value:
+            for synth in self.synths:
+                self.synths[synth].start()
+
+    def ctrl_stop(self, value):
+        self.log.info('stopping all synths')
+        if value:
+            for synth in self.synths:
+                self.synths[synth].stop()
 
     def init_mixer(self):
         self._mixer = {}
@@ -301,7 +323,7 @@ class Synth(object):
         if control in self._listen:
             self._listen[control](value)
 
-    def stop(self):
+    def shutdown(self):
         self.log.info('shutting down sound server')
         self.server.shutdown()
 

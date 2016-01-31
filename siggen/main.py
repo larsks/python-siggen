@@ -92,7 +92,7 @@ def main():
     while not QUIT:
         time.sleep(0.5)
 
-    s.stop()
+    s.shutdown()
     LOG.warn('all done.')
 
 if __name__ == '__main__':
