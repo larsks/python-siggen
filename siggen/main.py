@@ -4,6 +4,7 @@ import argparse
 import logging
 import time
 import yaml
+import signal
 from . import synth
 
 
@@ -84,6 +85,8 @@ def main():
                 time.sleep(1)
             else:
                 raise
+
+    signal.signal(signal.SIGINT, set_quit_flag)
 
     LOG.warn('siggen ready')
     while not QUIT:
