@@ -198,6 +198,13 @@ class Synth(object):
     def init_listeners(self):
         self._listen = {}
 
+        c = pyo.RawMidi(self.midi_handler)
+
+        # apparently we need to store a reference to this or
+        # it goes away when it falls out of scope.
+        self._raw_handle = c
+        c.out()
+
     def init_controls(self):
         self.log.debug('start init controls')
 
@@ -211,10 +218,6 @@ class Synth(object):
                 self.register_midi_listener(
                     self.controls[synth]['freq'],
                     partial(self.ctrl_freq, synth))
-
-        c = pyo.RawMidi(self.midi_handler)
-        self._raw_handle = c
-        c.out()
 
         self.log.debug('done init controls')
 
