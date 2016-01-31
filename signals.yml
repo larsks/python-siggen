@@ -3,7 +3,8 @@
 rate: 44100
 
 devices:
-  midi: nanoKONTROL2 MIDI 1
+  midi:
+    name: nanoKONTROL2 MIDI 1
   input:
     name: USB audio CODEC
     channels: 1
