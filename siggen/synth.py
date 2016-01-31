@@ -200,7 +200,6 @@ class Synth(object):
                     partial(self.ctrl_freq, synth))
 
         c = pyo.RawMidi(self.midi_handler)
-        self._ctrl['raw'] = c
         c.out()
 
     def init_mixer(self):
@@ -215,6 +214,9 @@ class Synth(object):
                 'element': e,
                 'channel': alsamixer.channel_id[mixer['channel']],
             }
+
+            self._ctrl[mixer['volume']] = (
+                partial(self.ctrl_mixer, name))
 
     def ctrl_mixer(self, name, value):
         e = self._mixer[name]['element']
