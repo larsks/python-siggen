@@ -176,6 +176,8 @@ class Synth(object):
 
     def init_synths(self):
         self.synths = {}
+        self.log.debug('start init synths')
+
         for synth in self.synth_names:
             func = getattr(self, 'create_synth_%s' % synth, None)
             if func is not None:
@@ -185,25 +187,35 @@ class Synth(object):
             self.log.debug('activating synth %s', synth)
             self.synths[synth].out()
 
+        self.log.debug('done init synths')
+
     def init_listeners(self):
         self._listen = {}
 
     def init_controls(self):
         self._ctrl = {}
+        self.log.debug('start init controls')
 
         for synth in self.synth_names:
             if 'volume' in self.controls[synth]:
-                self._ctrl[self.controls[synth]['volume']] = (
+                self.register_midi_listener(
+                    self.controls[synth]['volume'],
                     partial(self.ctrl_volume, synth))
+
             if 'freq' in self.controls[synth]:
-                self._ctrl[self.controls[synth]['freq']] = (
+                self.register_midi_listener(
+                    self.controls[synth]['freq'],
                     partial(self.ctrl_freq, synth))
 
         c = pyo.RawMidi(self.midi_handler)
+        self._raw_handle = c
         c.out()
+
+        self.log.debug('done init controls')
 
     def init_mixer(self):
         self._mixer = {}
+        self.log.debug('start init mixers')
 
         for name, mixer in self.mixers.items():
             m = alsamixer.Mixer()
@@ -211,20 +223,26 @@ class Synth(object):
             m.load()
             e = alsamixer.Element(m, mixer['element'])
             self._mixer[name] = {
+                'mixer': m,
                 'element': e,
                 'channel': alsamixer.channel_id[mixer['channel']],
+                'range': e.get_volume_range(),
             }
 
             self._ctrl[mixer['volume']] = (
                 partial(self.ctrl_mixer, name))
 
+        self.log.debug('done init mixers')
+
     def ctrl_mixer(self, name, value):
         e = self._mixer[name]['element']
         channel = self._mixer[name]['channel']
-        minvol, maxvol = e.get_volume_range()
+        minvol, maxvol = self._mixer[name]['range']
+
         volume = minvol + (value/127) * (maxvol-minvol)
-        self.log.info('mixer %s: set volume = %f (from %d)',
-                      name, volume, value)
+        self.log.debug('mixer %s: set volume = %f (from %d) '
+                       'for element %s channel %d',
+                       name, volume, value, e.name, channel)
 
         e.set_volume(volume, channel)
 
@@ -246,9 +264,11 @@ class Synth(object):
             self._listen[control](value)
 
     def stop(self):
+        self.log.info('shutting down sound server')
         self.server.shutdown()
 
     def register_midi_listener(self, control, func):
+        self.log.debug('registering action for control %d', control)
         if control in self._listen:
             raise AlreadyListening(control)
 
