@@ -223,10 +223,18 @@ class Synth(object):
 
         for mixer_name, mixer in self.mixers.items():
             m = alsamixer.Mixer()
-            m.attach(mixer_name)
+            try:
+                m.attach(mixer_name)
+            except RuntimeError:
+                raise MissingALSADevice(mixer_name)
+
             m.load()
             for element_name, element in mixer.items():
-                e = alsamixer.Element(m, element_name)
+                try:
+                    e = alsamixer.Element(m, element_name)
+                except IOError:
+                    raise MissingALSADevice('%s.%s' % (
+                        mixer_name, element_name))
                 for channel, control in element.get('output', {}).items():
                     tag = '%s.%s.%s.out' % (
                         mixer_name,
