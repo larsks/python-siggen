@@ -231,8 +231,8 @@ class Synth(object):
             m.load()
             for element_name, element in mixer.items():
                 e = alsamixer.Element(m, element_name)
-                for channel, control in element.items():
-                    tag = '%s.%s.%s' % (
+                for channel, control in element.get('output', {}).items():
+                    tag = '%s.%s.%s.out' % (
                         mixer_name,
                         element_name,
                         channel)
@@ -242,8 +242,29 @@ class Synth(object):
                     self._mixer[tag] = {
                         'mixer': m,
                         'element': e,
+                        'capture': False,
                         'channel': alsamixer.channel_id[channel],
                         'range': e.get_volume_range(),
+                    }
+
+                    self.register_midi_listener(
+                        control,
+                        partial(self.ctrl_mixer, tag))
+
+                for channel, control in element.get('capture', {}).items():
+                    tag = '%s.%s.%s.in' % (
+                        mixer_name,
+                        element_name,
+                        channel)
+
+                    self.log.debug('mixer tag = %s', tag)
+
+                    self._mixer[tag] = {
+                        'mixer': m,
+                        'element': e,
+                        'capture': True,
+                        'channel': alsamixer.channel_id[channel],
+                        'range': e.get_volume_range(True),
                     }
 
                     self.register_midi_listener(
@@ -255,13 +276,14 @@ class Synth(object):
     def ctrl_mixer(self, name, value):
         e = self._mixer[name]['element']
         channel = self._mixer[name]['channel']
+        capture = self._mixer[name]['capture']
         minvol, maxvol = self._mixer[name]['range']
 
         volume = int(minvol + (value/127) * (maxvol-minvol))
         self.log.debug('mixer %s: set volume = %d (from %d)',
                        name, volume, value)
 
-        e.set_volume(volume, channel)
+        e.set_volume(volume, channel, capture)
         self._mixer_lock.release()
 
     def ctrl_freq(self, synth, value):
