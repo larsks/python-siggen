@@ -6,39 +6,13 @@ from pyalsa import alsamixer
 import logging
 import pyo
 
+from .exc import *  # NOQA
+
 FREQ_A0 = 27.5
 FREQ_C8 = 4186
 FREQ_C4 = 261.626
 DEFAULT_MIDI_DEVICE = 'nanoKONTROL2 MIDI 1'
 LOG = logging.getLogger(__name__)
-
-
-class SynthError(Exception):
-    pass
-
-
-class BootFailed(SynthError):
-    pass
-
-
-class MissingDevice(SynthError):
-    pass
-
-
-class MissingPAInputDevice(MissingDevice):
-    pass
-
-
-class MissingPAOutputDevice(MissingDevice):
-    pass
-
-
-class MissingPMInputDevice(MissingDevice):
-    pass
-
-
-class AlreadyListening(SynthError):
-    pass
 
 
 def calc_key_freq(value):
