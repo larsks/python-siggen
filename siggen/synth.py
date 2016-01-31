@@ -37,6 +37,10 @@ class MissingPMInputDevice(MissingDevice):
     pass
 
 
+class AlreadyListening(SynthError):
+    pass
+
+
 def calc_key_freq(value):
     key = int((value/127.0) * 88)
     freq = 2 ** ((key-49)/12) * 440
@@ -102,6 +106,7 @@ class Synth(object):
             raise BootFailed()
 
         self.init_controls()
+        self.init_listeners()
         self.init_mixer()
         self.init_synths()
 
@@ -180,6 +185,9 @@ class Synth(object):
             self.log.debug('activating synth %s', synth)
             self.synths[synth].out()
 
+    def init_listeners(self):
+        self._listen = {}
+
     def init_controls(self):
         self._ctrl = {}
 
@@ -196,10 +204,27 @@ class Synth(object):
         c.out()
 
     def init_mixer(self):
-        pass
+        self._mixer = {}
+
+        for name, mixer in self.mixers.items():
+            m = alsamixer.Mixer()
+            m.attach(mixer['device'])
+            m.load()
+            e = alsamixer.Element(m, mixer['element'])
+            self._mixer[name] = {
+                'element': e,
+                'channel': alsamixer.channel_id[mixer['channel']],
+            }
 
     def ctrl_mixer(self, name, value):
-        pass
+        e = self._mixer[name]['element']
+        channel = self._mixer[name]['channel']
+        minvol, maxvol = e.get_volume_range()
+        volume = minvol + (value/127) * (maxvol-minvol)
+        self.log.info('mixer %s: set volume = %f (from %d)',
+                      name, volume, value)
+
+        e.set_volume(volume, channel)
 
     def ctrl_freq(self, synth, value):
         freq = calc_key_freq(value)
@@ -215,6 +240,14 @@ class Synth(object):
         self.log.debug('midi control %d value %d', control, value)
         if control in self._ctrl:
             self._ctrl[control](value)
+        elif control in self._listen:
+            self._listen[control](value)
 
     def stop(self):
         self.server.shutdown()
+
+    def register_midi_listener(self, control, func):
+        if control in self._listen:
+            raise AlreadyListening(control)
+
+        self._listen[control] = func
