@@ -5,6 +5,7 @@ from functools import partial
 from pyalsa import alsamixer
 import logging
 import pyo
+import threading
 
 FREQ_A0 = 27.5
 FREQ_C8 = 4186
@@ -216,21 +217,30 @@ class Synth(object):
         self._mixer = {}
         self.log.debug('start init mixers')
 
-        for name, mixer in self.mixers.items():
+        for mixer_name, mixer in self.mixers.items():
             m = alsamixer.Mixer()
-            m.attach(mixer['device'])
+            m.attach(mixer_name)
             m.load()
-            e = alsamixer.Element(m, mixer['element'])
-            self._mixer[name] = {
-                'mixer': m,
-                'element': e,
-                'channel': alsamixer.channel_id[mixer['channel']],
-                'range': e.get_volume_range(),
-            }
+            for element_name, element in mixer.items():
+                e = alsamixer.Element(m, element_name)
+                for channel, control in element.items():
+                    tag = '%s.%s.%s' % (
+                        mixer_name,
+                        element_name,
+                        channel)
 
-            self.register_midi_listener(
-                mixer['volume'],
-                partial(self.ctrl_mixer, name))
+                    self.log.debug('mixer tag = %s', tag)
+
+                    self._mixer[tag] = {
+                        'mixer': m,
+                        'element': e,
+                        'channel': alsamixer.channel_id[channel],
+                        'range': e.get_volume_range(),
+                    }
+
+                    self.register_midi_listener(
+                        control,
+                        partial(self.ctrl_mixer, tag))
 
         self.log.debug('done init mixers')
 
@@ -240,11 +250,11 @@ class Synth(object):
         minvol, maxvol = self._mixer[name]['range']
 
         volume = int(minvol + (value/127) * (maxvol-minvol))
-        self.log.debug('mixer %s: set volume = %d (from %d) '
-                       'for element %s channel %d',
-                       name, volume, value, e.name, channel)
+        self.log.debug('mixer %s: set volume = %d (from %d)',
+                       name, volume, value)
 
         e.set_volume(volume, channel)
+        self._mixer_lock.release()
 
     def ctrl_freq(self, synth, value):
         freq = calc_key_freq(value)
