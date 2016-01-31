@@ -154,6 +154,8 @@ class Synth(object):
     def create_synth_square(self, name):
         self.log.debug('creating synth %s', name)
         t = pyo.SquareTable()
+        t = pyo.LinTable([(0, 1), (8192//2, 1),
+                          ((8192//2), -1), (8191, -1)])
         self.synths[name] = pyo.Osc(table=t,
                                     mul=0,
                                     freq=[FREQ_C4, FREQ_C4])
