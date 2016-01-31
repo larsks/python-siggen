@@ -239,8 +239,8 @@ class Synth(object):
         channel = self._mixer[name]['channel']
         minvol, maxvol = self._mixer[name]['range']
 
-        volume = minvol + (value/127) * (maxvol-minvol)
-        self.log.debug('mixer %s: set volume = %f (from %d) '
+        volume = int(minvol + (value/127) * (maxvol-minvol))
+        self.log.debug('mixer %s: set volume = %d (from %d) '
                        'for element %s channel %d',
                        name, volume, value, e.name, channel)
 
