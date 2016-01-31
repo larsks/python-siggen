@@ -7,6 +7,8 @@ import logging
 import pyo
 import threading
 
+from . import tables
+
 FREQ_A0 = 27.5
 FREQ_C8 = 4186
 FREQ_C4 = 261.626
@@ -168,7 +170,10 @@ class Synth(object):
 
     def create_synth_triangle(self, name):
         self.log.debug('creating synth %s', name)
-        self.create_synth_sawtooth('triangle')
+        t = tables.TriangleTable()
+        self.synths[name] = pyo.Osc(table=t,
+                                    mul=0,
+                                    freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_passthrough(self, name):
         self.log.debug('creating synth %s', name)
