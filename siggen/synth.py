@@ -105,8 +105,8 @@ class Synth(object):
         if not self.server.getIsBooted() or not self.server.getIsStarted():
             raise BootFailed()
 
-        self.init_controls()
         self.init_listeners()
+        self.init_controls()
         self.init_mixer()
         self.init_synths()
 
@@ -193,7 +193,6 @@ class Synth(object):
         self._listen = {}
 
     def init_controls(self):
-        self._ctrl = {}
         self.log.debug('start init controls')
 
         for synth in self.synth_names:
@@ -229,7 +228,8 @@ class Synth(object):
                 'range': e.get_volume_range(),
             }
 
-            self._ctrl[mixer['volume']] = (
+            self.register_midi_listener(
+                mixer['volume'],
                 partial(self.ctrl_mixer, name))
 
         self.log.debug('done init mixers')
@@ -258,9 +258,7 @@ class Synth(object):
 
     def midi_handler(self, status, control, value):
         self.log.debug('midi control %d value %d', control, value)
-        if control in self._ctrl:
-            self._ctrl[control](value)
-        elif control in self._listen:
+        if control in self._listen:
             self._listen[control](value)
 
     def stop(self):
