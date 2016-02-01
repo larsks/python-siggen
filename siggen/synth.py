@@ -35,26 +35,28 @@ def discover_pm_devices():
 
 
 class Synth(object):
-    synth_names = ['sine', 'square', 'triangle', 'sawtooth', 'passthrough']
-
     def __init__(self,
                  midiDevice=None,
                  outputDevice=None,
                  outputDeviceChannels=None,
                  inputDevice=None,
                  inputDeviceChannels=None,
-                 controls=None,
+                 synths=None,
                  mixers=None,
+                 controls=None,
                  nharmonics=None,
                  tsize=None):
 
         self.init_log()
 
-        self.controls = controls
+        self.synths = synths
         self.mixers = mixers
+        self.controls = controls
+
         self.inputDevice = inputDevice
         self.outputDevice = outputDevice
         self.midiDevice = midiDevice
+
         self.nharmonics = (
             nharmonics if nharmonics is not None
             else DEFAULT_NHARMONICS)
@@ -103,8 +105,8 @@ class Synth(object):
 
         self.init_listeners()
         self.init_controls()
-        self.init_mixers()
         self.init_synths()
+        self.init_mixers()
 
     def init_log(self):
         self.log = logging.getLogger('%s.%s' % (
@@ -135,57 +137,68 @@ class Synth(object):
 
         raise MissingPMInputDevice(want)
 
-    def create_synth_sine(self, name):
-        self.log.debug('creating synth %s', name)
-        self.synths[name] = pyo.Sine(mul=0,
-                                     freq=[FREQ_C4, FREQ_C4])
+    def create_synth_sine(self):
+        self.log.debug('creating sine synth')
+        return pyo.Sine(mul=0, freq=[FREQ_C4, FREQ_C4])
 
-    def create_synth_square(self, name):
-        self.log.debug('creating synth %s', name)
-#        t = pyo.LinTable([(0, 1), (8192//2, 1),
-#                          ((8192//2), -1), (8191, -1)])
+    def create_synth_square(self):
+        self.log.debug('creating square synth')
         t = pyo.SquareTable(order=self.nharmonics, size=self.tsize)
-        self.synths[name] = pyo.Osc(table=t,
-                                    mul=0,
-                                    freq=[FREQ_C4, FREQ_C4])
+        return pyo.Osc(table=t,
+                       mul=0,
+                       freq=[FREQ_C4, FREQ_C4])
 
-    def create_synth_sawtooth(self, name):
-        self.log.debug('creating synth %s', name)
-#        t = pyo.LinTable([(0, -1), (8191, 1)])
+    def create_synth_sawtooth(self):
+        self.log.debug('creating sawtooth synth')
         t = pyo.SawTable(order=self.nharmonics, size=self.tsize)
-        self.synths[name] = pyo.Osc(table=t,
-                                    mul=0,
-                                    freq=[FREQ_C4, FREQ_C4])
+        return pyo.Osc(table=t,
+                       mul=0,
+                       freq=[FREQ_C4, FREQ_C4])
 
-    def create_synth_triangle(self, name):
-        self.log.debug('creating synth %s', name)
-#        t = pyo.LinTable([(0, 0), (8192//4, 1), (8192//2, 0),
-#                          (3*(8192//4), -1), (8191, 0)])
+    def create_synth_triangle(self):
+        self.log.debug('creating triangle synth')
         c = cycle([1, -1])
         l = [next(c)/(i*i) if i % 2 == 1 else 0
              for i in range(1, (2*self.nharmonics))]
         t = pyo.HarmTable(list=l, size=self.tsize)
-        self.synths[name] = pyo.Osc(table=t,
-                                    mul=0,
-                                    freq=[FREQ_C4, FREQ_C4])
+        return pyo.Osc(table=t,
+                       mul=0,
+                       freq=[FREQ_C4, FREQ_C4])
 
-    def create_synth_passthrough(self, name):
-        self.log.debug('creating synth %s', name)
+    def create_synth_passthrough(self):
+        self.log.debug('creating passthrough synth')
         i = pyo.Input()
-        self.synths[name] = pyo.Mix(i, voices=2, mul=0)
+        return pyo.Mix(i, voices=2, mul=0)
 
     def init_synths(self):
-        self.synths = {}
+        self._synths = []
         self.log.debug('start init synths')
 
-        for synth in self.synth_names:
-            func = getattr(self, 'create_synth_%s' % synth, None)
-            if func is not None:
-                func(synth)
+        for i, synth in enumerate(self.synths):
+            self.log.debug('creating synth %d (%s)',
+                           i, synth['type'])
 
-        for synth in self.synths:
-            self.log.debug('activating synth %s', synth)
-            self.synths[synth].out()
+            try:
+                func = getattr(self, 'create_synth_%(type)s' % synth)
+            except AttributeError:
+                raise UnknownSynthType(synth)
+
+            s = func()
+            self._synths.append(s)
+
+            if 'volume' in synth:
+                self.register_midi_listener(
+                    synth['volume'],
+                    partial(self.ctrl_volume, i))
+
+            if 'freq' in synth:
+                self.register_midi_listener(
+                    synth['freq'],
+                    partial(self.ctrl_freq, i))
+
+        for i, synth in enumerate(self._synths):
+            self.log.debug('activating synth %d', i)
+            synth.out()
 
         self.log.debug('done init synths')
 
@@ -202,17 +215,6 @@ class Synth(object):
     def init_controls(self):
         self.log.debug('start init controls')
 
-        for synth in self.synth_names:
-            if 'volume' in self.controls[synth]:
-                self.register_midi_listener(
-                    self.controls[synth]['volume'],
-                    partial(self.ctrl_volume, synth))
-
-            if 'freq' in self.controls[synth]:
-                self.register_midi_listener(
-                    self.controls[synth]['freq'],
-                    partial(self.ctrl_freq, synth))
-
         if 'play' in self.controls:
             self.register_midi_listener(
                 self.controls['play'],
@@ -228,14 +230,14 @@ class Synth(object):
     def ctrl_play(self, value):
         self.log.info('starting all synths')
         if value:
-            for synth in self.synths:
-                self.synths[synth].out()
+            for synth in self._synths:
+                synth.out()
 
     def ctrl_stop(self, value):
         self.log.info('stopping all synths')
         if value:
-            for synth in self.synths:
-                self.synths[synth].stop()
+            for synth in self._synths:
+                synth.stop()
 
     def init_mixer_device(self, tag, mixer, element, channel, control,
                           capture=False):
@@ -308,13 +310,13 @@ class Synth(object):
 
     def ctrl_freq(self, synth, value):
         freq = calc_key_freq(value)
-        self.log.info('%s: set freq = %f', synth, freq)
-        self.synths[synth].setFreq(freq)
+        self.log.info('%d: set freq = %f', synth, freq)
+        self._synths[synth].setFreq(freq)
 
     def ctrl_volume(self, synth, value):
         vol = value / 127
-        self.log.info('%s: set volume = %f', synth, vol)
-        self.synths[synth].setMul(vol)
+        self.log.info('%d: set volume = %f', synth, vol)
+        self._synths[synth].setMul(vol)
 
     def midi_handler(self, status, control, value):
         self.log.debug('midi control %d value %d', control, value)

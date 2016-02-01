@@ -2,6 +2,11 @@ class SynthError(Exception):
     pass
 
 
+class UnknownSynthType(SynthError):
+    '''Raised if you attempt to instantiate a synth with an
+    recognized 'type' key.'''
+    pass
+
 class BootFailed(SynthError):
     '''This exception is raised if the PYO sound server fails to start.'''
     pass
