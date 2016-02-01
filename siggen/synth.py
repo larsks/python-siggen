@@ -23,6 +23,15 @@ def calc_key_freq(value):
     return freq
 
 
+def discover_pa_devices():
+    return pyo.pa_get_devices_infos()
+
+
+def discover_pm_devices():
+    inputs = pyo.pm_get_input_devices()
+    return dict(zip(inputs[1], inputs[0]))
+
+
 class Synth(object):
     synth_names = ['sine', 'square', 'triangle', 'sawtooth', 'passthrough']
 
@@ -89,15 +98,8 @@ class Synth(object):
             __name__, self.__class__.__name__))
 
     def discover_devices(self):
-        self.discover_pa_devices()
-        self.discover_pm_devices()
-
-    def discover_pa_devices(self):
-        self.pa_inputs, self.pa_outputs = pyo.pa_get_devices_infos()
-
-    def discover_pm_devices(self):
-        inputs = pyo.pm_get_input_devices()
-        self.pm_inputs = dict(zip(inputs[1], inputs[0]))
+        self.pa_inputs, self.pa_outputs = discover_pa_devices()
+        self.pm_inputs = discover_pm_devices()
 
     def pa_input_device_by_name(self, name):
         for index, info in self.pa_inputs.items():
@@ -176,7 +178,7 @@ class Synth(object):
 
         # apparently we need to store a reference to this or
         # it goes away when it falls out of scope.
-        self._raw_handle = c
+        self._listener = c
         c.out()
 
     def init_controls(self):

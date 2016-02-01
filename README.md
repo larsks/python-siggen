@@ -158,3 +158,11 @@ this *before* calling the `boot()` method.  For example:
     >>> s = Server()
     >>> s.setInputDevice(11)
     >>> s.boot()
+
+PYO does not play well with others.  In particular, if your system is
+running [Pulseaudio][], be prepared for some really bizarre behavior
+as input or outputs seem to go randomly missing, making code that
+worked moments ago fail mysteriously.
+
+[pulseaudio]: http://www.freedesktop.org/wiki/Software/PulseAudio/
+
