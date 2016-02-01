@@ -3,6 +3,7 @@ from __future__ import division
 from six import string_types
 from functools import partial
 from pyalsa import alsamixer
+from itertools import cycle
 import logging
 import pyo
 
@@ -11,7 +12,7 @@ from .exc import *  # NOQA
 FREQ_A0 = 27.5
 FREQ_C8 = 4186
 FREQ_C4 = 261.626
-DEFAULT_MIDI_DEVICE = 'nanoKONTROL2 MIDI 1'
+DEFAULT_NHARMONICS = 30
 LOG = logging.getLogger(__name__)
 
 
@@ -42,7 +43,8 @@ class Synth(object):
                  inputDevice=None,
                  inputDeviceChannels=None,
                  controls=None,
-                 mixers=None):
+                 mixers=None,
+                 nharmonics=DEFAULT_NHARMONICS):
 
         self.init_log()
 
@@ -51,6 +53,7 @@ class Synth(object):
         self.inputDevice = inputDevice
         self.outputDevice = outputDevice
         self.midiDevice = midiDevice
+        self.nharmonics = nharmonics
 
         self.discover_devices()
 
@@ -129,24 +132,29 @@ class Synth(object):
 
     def create_synth_square(self, name):
         self.log.debug('creating synth %s', name)
-        t = pyo.SquareTable()
-        t = pyo.LinTable([(0, 1), (8192//2, 1),
-                          ((8192//2), -1), (8191, -1)])
+#        t = pyo.LinTable([(0, 1), (8192//2, 1),
+#                          ((8192//2), -1), (8191, -1)])
+        t = pyo.SquareTable(order=self.nharmonics)
         self.synths[name] = pyo.Osc(table=t,
                                     mul=0,
                                     freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_sawtooth(self, name):
         self.log.debug('creating synth %s', name)
-        t = pyo.LinTable([(0, -1), (8191, 1)])
+#        t = pyo.LinTable([(0, -1), (8191, 1)])
+        t = pyo.SawTable(order=self.nharmonics)
         self.synths[name] = pyo.Osc(table=t,
                                     mul=0,
                                     freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_triangle(self, name):
         self.log.debug('creating synth %s', name)
-        t = pyo.LinTable([(0, 0), (8192//4, 1), (8192//2, 0),
-                          (3*(8192//4), -1), (8191, 0)])
+#        t = pyo.LinTable([(0, 0), (8192//4, 1), (8192//2, 0),
+#                          (3*(8192//4), -1), (8191, 0)])
+        c = cycle([1, -1])
+        l = [next(c)/(i*i) if i % 2 == 1 else 0
+             for i in range(1, (2*self.nharmonics))]
+        t = pyo.HarmTable(list=l)
         self.synths[name] = pyo.Osc(table=t,
                                     mul=0,
                                     freq=[FREQ_C4, FREQ_C4])
