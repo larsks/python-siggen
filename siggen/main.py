@@ -30,7 +30,7 @@ def parse_args():
 
     p.add_argument('--nomidi',
                    action='store_true',
-                   help='do not attach to a midi controller')
+                   help=argparse.SUPPRESS)
 
     p.add_argument('--list', '-l',
                    action='store_true',
