@@ -1,0 +1,11 @@
+html {
+	width: 8in;
+	margin: auto;
+	font-family: Arial,Helvetica Neue,Helvetica,sans-serif;
+}
+
+pre {
+	padding: 1ex;
+	background-color: #d0d0d0;
+	border: thin solid black;
+}
