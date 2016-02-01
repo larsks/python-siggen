@@ -13,6 +13,7 @@ FREQ_A0 = 27.5
 FREQ_C8 = 4186
 FREQ_C4 = 261.626
 DEFAULT_NHARMONICS = 30
+DEFAULT_TSIZE=4096
 LOG = logging.getLogger(__name__)
 
 
@@ -44,7 +45,8 @@ class Synth(object):
                  inputDeviceChannels=None,
                  controls=None,
                  mixers=None,
-                 nharmonics=DEFAULT_NHARMONICS):
+                 nharmonics=DEFAULT_NHARMONICS,
+                 tsize=DEFAULT_TSIZE):
 
         self.init_log()
 
@@ -54,6 +56,7 @@ class Synth(object):
         self.outputDevice = outputDevice
         self.midiDevice = midiDevice
         self.nharmonics = nharmonics
+        self.tsize = tsize
 
         self.discover_devices()
 
@@ -134,7 +137,7 @@ class Synth(object):
         self.log.debug('creating synth %s', name)
 #        t = pyo.LinTable([(0, 1), (8192//2, 1),
 #                          ((8192//2), -1), (8191, -1)])
-        t = pyo.SquareTable(order=self.nharmonics)
+        t = pyo.SquareTable(order=self.nharmonics, size=self.tsize)
         self.synths[name] = pyo.Osc(table=t,
                                     mul=0,
                                     freq=[FREQ_C4, FREQ_C4])
@@ -142,7 +145,7 @@ class Synth(object):
     def create_synth_sawtooth(self, name):
         self.log.debug('creating synth %s', name)
 #        t = pyo.LinTable([(0, -1), (8191, 1)])
-        t = pyo.SawTable(order=self.nharmonics)
+        t = pyo.SawTable(order=self.nharmonics, size=self.tsize)
         self.synths[name] = pyo.Osc(table=t,
                                     mul=0,
                                     freq=[FREQ_C4, FREQ_C4])
@@ -154,7 +157,7 @@ class Synth(object):
         c = cycle([1, -1])
         l = [next(c)/(i*i) if i % 2 == 1 else 0
              for i in range(1, (2*self.nharmonics))]
-        t = pyo.HarmTable(list=l)
+        t = pyo.HarmTable(list=l, size=self.tsize)
         self.synths[name] = pyo.Osc(table=t,
                                     mul=0,
                                     freq=[FREQ_C4, FREQ_C4])
