@@ -1,11 +1,18 @@
+# This is the unit file I use to start siggen on my Raspberry Pi.
+
 [Unit]
 Description=Signal generator
 After=sound.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/siggen --wait -v -f /etc/siggen.yml
+ExecStart=/usr/bin/siggen -f /etc/siggen/pi.yml
+
+# We configure siggen to restart automatically so that if devices are
+# missing at boot (e.g., you haven't plugged in the MIDI controller
+# yet), we can recover automatically.
+Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
-
