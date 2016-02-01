@@ -13,7 +13,7 @@ FREQ_A0 = 27.5
 FREQ_C8 = 4186
 FREQ_C4 = 261.626
 DEFAULT_NHARMONICS = 30
-DEFAULT_TSIZE=2048
+DEFAULT_TSIZE = 8192
 LOG = logging.getLogger(__name__)
 
 
@@ -45,8 +45,8 @@ class Synth(object):
                  inputDeviceChannels=None,
                  controls=None,
                  mixers=None,
-                 nharmonics=DEFAULT_NHARMONICS,
-                 tsize=DEFAULT_TSIZE):
+                 nharmonics=None,
+                 tsize=None):
 
         self.init_log()
 
@@ -55,8 +55,15 @@ class Synth(object):
         self.inputDevice = inputDevice
         self.outputDevice = outputDevice
         self.midiDevice = midiDevice
-        self.nharmonics = nharmonics
-        self.tsize = tsize
+        self.nharmonics = (
+            nharmonics if nharmonics is not None
+            else DEFAULT_NHARMONICS)
+        self.tsize = (
+            tsize if tsize is not None
+            else DEFAULT_TSIZE)
+
+        self.log.debug('table params: tsize = %d, nharmonics = %d',
+                       self.tsize, self.nharmonics)
 
         self.discover_devices()
 

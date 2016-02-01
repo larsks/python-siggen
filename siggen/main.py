@@ -92,6 +92,8 @@ def main():
         kwargs['midiDevice'] = midiDevice['name']
 
     s = synth.Synth(
+        tsize=config.get('tsize'),
+        nharmonics=config.get('nharmonics'),
         controls=config['controls'],
         mixers=config['mixers'],
         **kwargs)
