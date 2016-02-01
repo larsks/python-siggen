@@ -5,6 +5,9 @@ import logging
 import time
 import yaml
 import signal
+from functools import partial
+
+from . import utils
 from . import mute_alsa  # NOQA
 from . import synth
 
@@ -96,7 +99,15 @@ def main():
         nharmonics=config.get('nharmonics'),
         controls=config['controls'],
         mixers=config['mixers'],
+        synths=config['synths'],
         **kwargs)
+
+    if 'external' in config:
+        LOG.info('registering external actions')
+        for action in config['external']:
+            s.register_midi_listener(action['control'],
+                                     partial(utils.run_script,
+                                             action['script']))
 
     signal.signal(signal.SIGINT, set_quit_flag)
 

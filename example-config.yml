@@ -1,34 +1,27 @@
 ---
-# Which midi device to use
-rate: 44100
-
 devices:
   midi:
     name: nanoKONTROL2 MIDI 1
-  input:
-    name: Scarlett 2i2 USB
-    channels: 1
 
-# Map MIDI control change messages to actions
-controls:
-  sine:
+synths:
+  - type: sine
     freq: 16
     volume: 102
 
-  square:
+  - type: square
     freq: 17
     volume: 103
 
-  triangle:
+  - type: triangle
     freq: 18
     volume: 104
 
-  sawtooth:
+  - type: sawtooth
     freq: 19
     volume: 105
 
-  passthrough:
-    volume: 107
+  -  type: passthrough
+     volume: 107
 
 mixers:
   default:
