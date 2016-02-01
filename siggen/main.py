@@ -28,10 +28,6 @@ def parse_args():
     p.add_argument('--config', '-f',
                    default='signals.yml')
 
-    p.add_argument('--wait', '-w',
-                   action='store_true',
-                   help='wait for devices instead of failing')
-
     p.add_argument('--nomidi',
                    action='store_true',
                    help='do not attach to a midi controller')
@@ -95,19 +91,10 @@ def main():
     if midiDevice and not args.nomidi:
         kwargs['midiDevice'] = midiDevice['name']
 
-    while True:
-        try:
-            s = synth.Synth(
-                controls=config['controls'],
-                mixers=config['mixers'],
-                **kwargs)
-            break
-        except synth.MissingDevice as err:
-            if args.wait:
-                LOG.warn('waiting for %s', err)
-                time.sleep(1)
-            else:
-                raise
+    s = synth.Synth(
+        controls=config['controls'],
+        mixers=config['mixers'],
+        **kwargs)
 
     signal.signal(signal.SIGINT, set_quit_flag)
 
