@@ -1,6 +1,3 @@
-pyaudio
-mido
-numpy
-scipy
+pyalsa
 PyYAML
 pyo
