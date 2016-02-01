@@ -90,7 +90,7 @@ class Synth(object):
 
         self.init_listeners()
         self.init_controls()
-        self.init_mixer()
+        self.init_mixers()
         self.init_synths()
 
     def init_log(self):
@@ -235,7 +235,7 @@ class Synth(object):
             control,
             partial(self.ctrl_mixer, tag))
 
-    def init_mixer(self):
+    def init_mixers(self):
         self._mixer = {}
         self.log.debug('start init mixers')
 
@@ -253,6 +253,8 @@ class Synth(object):
                 except IOError:
                     raise MissingALSADevice('%s.%s' % (
                         mixer_name, element_name))
+
+                # create output device controls
                 for channel, control in element.get('output', {}).items():
                     tag = '%s.%s.%s.out' % (
                         mixer_name,
@@ -261,6 +263,7 @@ class Synth(object):
 
                     self.init_mixer_device(tag, m, e, channel, control)
 
+                # create capture device controls
                 for channel, control in element.get('capture', {}).items():
                     tag = '%s.%s.%s.in' % (
                         mixer_name,
@@ -310,3 +313,8 @@ class Synth(object):
             raise AlreadyListening(control)
 
         self._listen[control] = func
+
+    def unregister_midi_listener(self, control):
+        if control in self._listen:
+            self.log.debug('unregistering action for control %d', control)
+            del self._listen[control]
