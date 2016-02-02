@@ -9,3 +9,8 @@ pre {
 	background-color: #d0d0d0;
 	border: thin solid black;
 }
+
+h2 {
+	border-bottom: 0.5ex solid black;
+}
+

@@ -1,11 +1,16 @@
 DOCS = waveforms.html
-IMAGES = sawtooth-steps.svg \
-	 example1.svg \
-	 example2.svg \
+EXAMPLES = \
+	   example1.svg \
+	   example2.svg
+
+IMAGES = \
+	 sawtooth-steps.svg \
 	 square-steps.svg \
-	 triangle-steps.svg
+	 triangle-steps.svg \
+	 $(EXAMPLES)
 
 %.html: %.md
+	python -m doctest $<
 	pandoc -c style.css --from=markdown \
 	--standalone --to=html5 \
 	--mathjax="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML" \
@@ -19,6 +24,9 @@ IMAGES = sawtooth-steps.svg \
 all: $(DOCS) $(IMAGES)
 
 waveforms.html: $(IMAGES) style.css
+
+$(EXAMPLES): waveforms.md
+	python graphex.py -v $<
 
 clean:
 	rm -f $(IMAGES) $(DOCS)

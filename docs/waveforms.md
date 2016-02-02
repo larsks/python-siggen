@@ -1,8 +1,8 @@
 # Approximating waveforms via additive synthesis
 
 Additive synthesis is the process of approximating waveforms by adding
-sine waves together.  In this article, we look at how additive
-synthesis can be used to approximate basic waveforms.
+sine waves together.  In this article, I provider some examples of how
+specific waveforms can be composed using this method.
 
 ## Sawtooth
 
@@ -18,7 +18,12 @@ $$
 
 Where $f$ is the frequency of the desired waveform, $k$ is the
 *order*, or number of harmonics to use for the approximation, and $t$
-is the duration of the waveform.
+is time.
+
+We're looking at a *reverse* (or *inverse*) sawtooth waveform because
+this makes things a little more visually obvious; the non-reversed
+version is inverted with respect to the sine waves from which it is
+composed). Both variants sound the same.
 
 ### Code
 
@@ -27,18 +32,20 @@ translation of the above equation into the following Python code:
 
 [numpy]: http://www.numpy.org/
 
-~~~ {.python}
-import numpy as np
+```python
+>>> from numpy import pi, sin, linspace
+>>> order = 30
+>>> t = linspace(0, pi, 500)
+>>> waveform = (2/pi) * sum([
+...     (-1**k) * sin(2 * pi * k * t)/k
+...     for k in range(1, (order+1))
+... ])
+>>>
+```
 
-order = 30
-t = np.linspace(0, np.pi, 500)
-waveform = (2/np.pi) * sum([
-    (-1**k) * np.sin(2 * np.pi * k * t)/k
-    for k in range(1, (order+1))
-])
-~~~
+### Result
 
-Which results in:
+The above code results in:
 
 <img src="example1.svg" width="400" />
 
@@ -60,17 +67,18 @@ $$
 
 ### Code
 
-~~~ {.python}
-import numpy as np
+```python
+>>> import numpy as np
+>>> order = 30
+>>> t = np.linspace(0, np.pi, 500)
+>>> waveform = (4/np.pi) * sum([
+...   np.sin(2 * np.pi * (2 * k - 1) * t)/(2 * k - 1)
+...   for k in range(1, (order+2))
+... ])
+>>>
+```
 
-order = 30
-t = np.linspace(0, np.pi, 500)
-
-waveform = (4/np.pi) * sum([
-  np.sin(2 * np.pi * (2 * k - 1) * t)/(2 * k - 1)
-  for k in range(1, (order+2))
-])
-~~~
+### Result
 
 <img src="example2.svg" width="400" />
 
