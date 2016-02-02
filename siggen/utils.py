@@ -7,6 +7,11 @@ LOG = logging.getLogger(__name__)
 
 
 def run_script(s, cval=None):
+    '''This writes the content of s to a file and executes it.  The
+    `cval` parameter receives the control value from the MIDI listener; we
+    check for nonzero values to avoid executing on both button
+    press-and-release.'''
+
     if not cval:
         return
 
