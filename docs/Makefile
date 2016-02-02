@@ -25,8 +25,11 @@ all: $(DOCS) $(IMAGES)
 
 waveforms.html: $(IMAGES) style.css
 
-$(EXAMPLES): waveforms.md
-	python graphex.py -v -W 8 -H 3 $<
+.examples: waveforms.md
+	python graphex.py -v -W 8 -H 3 waveforms.md waveform
+	touch $@
+
+$(EXAMPLES): waveforms.md .examples
 
 clean:
-	rm -f $(IMAGES) $(DOCS)
+	rm -f $(IMAGES) $(DOCS) .examples
