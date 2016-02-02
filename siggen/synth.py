@@ -141,22 +141,45 @@ class Synth(object):
         self.log.debug('creating sine synth')
         return pyo.Sine(mul=0, freq=[FREQ_C4, FREQ_C4])
 
+    def create_synth_square_line(self):
+        self.log.debug('creating square synth [lintable]')
+        t = pyo.LinTable([(0, 1), (8192//2, 1),
+                          ((8192//2), -1), (8191, -1)])
+        return pyo.Osc(table=t,
+                       mul=0,
+                       freq=[FREQ_C4, FREQ_C4])
+
     def create_synth_square(self):
-        self.log.debug('creating square synth')
+        self.log.debug('creating square synth [additive]')
         t = pyo.SquareTable(order=self.nharmonics, size=self.tsize)
         return pyo.Osc(table=t,
                        mul=0,
                        freq=[FREQ_C4, FREQ_C4])
 
+    def create_synth_sawtooth_line(self):
+        self.log.debug('creating sawtooth synth [lintable]')
+        t = pyo.LinTable([(0, 1), (8191, -1)])
+        return pyo.Osc(table=t,
+                       mul=0,
+                       freq=[FREQ_C4, FREQ_C4])
+
     def create_synth_sawtooth(self):
-        self.log.debug('creating sawtooth synth')
+        self.log.debug('creating sawtooth synth [additive]')
         t = pyo.SawTable(order=self.nharmonics, size=self.tsize)
         return pyo.Osc(table=t,
                        mul=0,
                        freq=[FREQ_C4, FREQ_C4])
 
+    def create_synth_triangle_line(self):
+        self.log.debug('creating triangle synth [lintable]')
+        t = pyo.LinTable([(0, 0), (8192//4, 1), (8192//2, 0),
+                          (3*(8192//4), -1), (8191, 0)])
+        return pyo.Osc(table=t,
+                       mul=0,
+                       freq=[FREQ_C4, FREQ_C4])
+
     def create_synth_triangle(self):
-        self.log.debug('creating triangle synth')
+        self.log.debug('creating triangle synth [additive]')
         c = cycle([1, -1])
         l = [next(c)/(i*i) if i % 2 == 1 else 0
              for i in range(1, (2*self.nharmonics))]
