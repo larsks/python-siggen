@@ -8,11 +8,9 @@ from doctest import DocTestParser, Example
 LOG = logging.getLogger(__name__)
 
 
-def graph(exnum, source):
+def graph(exnum, ctx, output, width=None, height=None):
     global args
-    ctx = {}
-    LOG.info('running example %d', exnum)
-    exec source in ctx
+    LOG.info('graphing example %d', exnum)
 
     if 'waveform' not in ctx:
         LOG.warn('no waveform in example %d', exnum)
@@ -20,16 +18,15 @@ def graph(exnum, source):
 
     LOG.info('plotting waveform for example %d', exnum)
     kwargs = {}
-    if args.width and args.height:
-        kwargs['figsize'] = (args.width, args.height)
-    elif args.width or args.height:
-        LOG.error('you must specify both height and width')
-        raise ValueError()
+    if width and height:
+        kwargs['figsize'] = (width, height)
+    elif width or height:
+        raise ValueError('you must provide both width and height')
 
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
     ax.plot(ctx['waveform'])
-    fig.savefig(args.output % exnum)
+    fig.savefig(output % exnum)
 
 
 def parse_args():
@@ -67,16 +64,16 @@ def main():
     with open(args.input) as fd:
         chunks = parser.parse(fd.read())
 
-    cur = []
     excount = 0
+    ctx = {}
     for chunk in chunks:
         if isinstance(chunk, Example):
-            cur.append(chunk.source)
-            if chunk.source.startswith('waveform'):
+            exec chunk.source in ctx
+            if 'waveform' in ctx:
                 excount += 1
-                source = ''.join(cur)
-                cur = []
-                graph(excount, source)
+                graph(excount, ctx, args.output,
+                      width=args.width, height=args.height)
+                del ctx['waveform']
 
 if __name__ == '__main__':
     main()
