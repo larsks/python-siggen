@@ -11,6 +11,7 @@ pre {
 }
 
 h2 {
+	page-break-before: always;
 	border-bottom: 0.5ex solid black;
 }
 
