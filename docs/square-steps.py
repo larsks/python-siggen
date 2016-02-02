@@ -9,7 +9,7 @@ t = np.linspace(0, np.pi, 500)
 for p, order in enumerate(range(0, 10)):
 
     d = [
-        (-1**k) * np.sin(2 * np.pi * (2 * k - 1) * t)/(2 * k - 1)
+        np.sin(2 * np.pi * (2 * k - 1) * t)/(2 * k - 1)
         for k in range(1, (order+2))
     ]
 

@@ -1,5 +1,7 @@
-DOCS = sawtooth.html
-IMAGES = sawtooth-steps.svg example1.svg \
+DOCS = waveforms.html
+IMAGES = sawtooth-steps.svg \
+	 example1.svg \
+	 example2.svg \
 	 square-steps.svg \
 	 triangle-steps.svg
 
@@ -16,7 +18,7 @@ IMAGES = sawtooth-steps.svg example1.svg \
 
 all: $(DOCS) $(IMAGES)
 
-sawtooth.html: sawtooth-steps.svg style.css
+waveforms.html: $(IMAGES) style.css
 
 clean:
 	rm -f $(IMAGES) $(DOCS)
