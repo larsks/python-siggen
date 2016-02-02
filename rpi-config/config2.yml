@@ -1,0 +1,56 @@
+---
+tables:
+  tsize: 512
+
+devices:
+  midi: 
+    name: nanoKONTROL2 MIDI 1
+  input:
+    name: USB Audio Device
+    channels: 1
+  input:
+    name: USB Audio Device
+    channels: 1
+  output:
+    name: USB Audio Device
+
+synths:
+  - type: sine
+    freq: 16
+    volume: 102
+
+  - type: sine
+    freq: 17
+    volume: 103
+
+  - type: sine
+    freq: 18
+    volume: 104
+
+  - type: sine
+    freq: 19
+    volume: 105
+
+controls:
+  play: 41
+  stop: 42
+
+mixers:
+  default:
+    Speaker:
+      output:
+        FRONT_LEFT: 108
+        FRONT_RIGHT: 109
+    Mic:
+      output:
+        MONO: 107
+      capture:
+        MONO: 21
+
+external:
+  - control: 43
+    script: |
+      #!/bin/sh
+      cd /root/python-siggen/rpi-config
+      ln -sf config1.yml active.yml
+      systemctl restart siggen
