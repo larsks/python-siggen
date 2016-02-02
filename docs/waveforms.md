@@ -1,7 +1,7 @@
 # Approximating waveforms via additive synthesis
 
 Additive synthesis is the process of approximating waveforms by adding
-sine waves together.  In this article, I provider some examples of how
+sine waves together.  In this article, I provide some examples of how
 specific waveforms can be composed using this method.
 
 ## Sawtooth
@@ -85,4 +85,34 @@ $$
 ### Steps
 
 ![Successive approximation of a square waveform](square-steps.svg)
+
+## Triangle
+
+### Equation
+
+$$
+x_\mathrm{triangle}(t) = \frac {8}{\pi^2} \sum_{k=0}^\infty (-1)^k \, \frac{ \sin \left( 2\pi(2k+1) ft \right)}{(2k+1)^2}
+$$
+
+### Code
+
+```python
+>>> from numpy import pi, sin, linspace
+>>> order = 30
+>>> t = linspace(0, pi, 500)
+>>> waveform = (8/pi**2) * sum([
+...   (-1)**k *
+...   sin(2 * pi * (2 * k + 1) * t)/(2 * k + 1)**2
+...   for k in range(0, (order+1))
+... ])
+>>>
+```
+
+### Result
+
+![Results of the square waveform code](example3.svg)
+
+### Steps
+
+![Successive approximation of a square waveform](triangle-steps.svg)
 
