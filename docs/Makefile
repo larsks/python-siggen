@@ -1,5 +1,7 @@
 DOCS = sawtooth.html
-IMAGES = sawtooth-steps.svg example1.svg
+IMAGES = sawtooth-steps.svg example1.svg \
+	 square-steps.svg \
+	 triangle-steps.svg
 
 %.html: %.md
 	pandoc -c style.css --from=markdown \
