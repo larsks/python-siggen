@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+# This extracts doctest examples from the given document and, if they
+# produce a 'waveform' variable, generates a graph of the waveform and
+# saves it to a file.
+
 import argparse
 import logging
 import matplotlib.pyplot as plt
@@ -9,6 +13,9 @@ LOG = logging.getLogger(__name__)
 
 
 def graph(exnum, ctx, output, width=None, height=None):
+    '''Use matplotlib to graph the context of
+    ctx['waveform'].'''
+
     global args
     LOG.info('graphing example %d', exnum)
 
