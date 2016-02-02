@@ -26,7 +26,7 @@ all: $(DOCS) $(IMAGES)
 waveforms.html: $(IMAGES) style.css
 
 $(EXAMPLES): waveforms.md
-	python graphex.py -v $<
+	python graphex.py -v -W 8 -H 3 $<
 
 clean:
 	rm -f $(IMAGES) $(DOCS)

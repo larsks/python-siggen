@@ -47,7 +47,7 @@ translation of the above equation into the following Python code:
 
 The above code results in:
 
-<img src="example1.svg" width="400" />
+![Results of the sawtooth waveform code](example1.svg)
 
 ### Steps
 
@@ -68,11 +68,11 @@ $$
 ### Code
 
 ```python
->>> import numpy as np
+>>> from numpy import pi, sin, linspace
 >>> order = 30
->>> t = np.linspace(0, np.pi, 500)
->>> waveform = (4/np.pi) * sum([
-...   np.sin(2 * np.pi * (2 * k - 1) * t)/(2 * k - 1)
+>>> t = linspace(0, pi, 500)
+>>> waveform = (4/pi) * sum([
+...   sin(2 * pi * (2 * k - 1) * t)/(2 * k - 1)
 ...   for k in range(1, (order+2))
 ... ])
 >>>
@@ -80,7 +80,7 @@ $$
 
 ### Result
 
-<img src="example2.svg" width="400" />
+![Results of the square waveform code](example2.svg)
 
 ### Steps
 

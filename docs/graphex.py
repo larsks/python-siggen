@@ -19,7 +19,14 @@ def graph(exnum, source):
         return
 
     LOG.info('plotting waveform for example %d', exnum)
-    fig = plt.figure()
+    kwargs = {}
+    if args.width and args.height:
+        kwargs['figsize'] = (args.width, args.height)
+    elif args.width or args.height:
+        LOG.error('you must specify both height and width')
+        raise ValueError()
+
+    fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
     ax.plot(ctx['waveform'])
     fig.savefig(args.output % exnum)
@@ -36,8 +43,10 @@ def parse_args():
                    const='DEBUG',
                    dest='loglevel')
 
-    p.add_argument('--width', '-W')
-    p.add_argument('--height', '-H')
+    p.add_argument('--width', '-W',
+                   type=int)
+    p.add_argument('--height', '-H',
+                   type=int)
     p.add_argument('--output', '-o',
                    default='example%d.svg')
 
@@ -71,4 +80,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
