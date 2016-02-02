@@ -1,13 +1,17 @@
 # Python Signal Generator
 
 This is a simple audio signal generator designed for a STEM night
-demonstration at our local elementary school.  It is designed to send
-audio output to an oscilloscope, to demonstrate the different sounds
-that correspond to different audio waveforms.  It is designed to be
-controlled by a Korg [nanoKONTROL2][], although any MIDI controller
-with a sufficient number of sliders and knobs should work.
+demonstration at our local elementary school.  My goal was to have
+some buttons and knobs that kids could fiddle with to make weird
+sounds, and to display the resulting waveforms on an oscilloscope.
+
+The knobs and button were provided by a Korg [nanoKONTROL2][],
+although any MIDI controller will work. The sounds were provided by
+this project.
 
 [nanokontrol2]: http://www.korg.com/us/products/controllers/nanokontrol2/
+
+## Thanks
 
 This project uses [PYO][], a fantastic Python audio processing module.
 My code barely scratches the surface of what you can do with it.
@@ -174,6 +178,41 @@ example:
 **WARNING** Running external scripts seems to break PYO, so unless
 your script causes siggen to exit (see the `rpi-config` directory for
 an example), you should probably be careful around this.
+
+## Synth types
+
+Siggen supports several synthesizer types.
+
+### Sine
+
+- `sine` -- your basic sine wave
+
+### Additive synthesis
+
+These are generated with the PYO [HarmTable][] class.
+
+- `square`
+- `triangle`
+- `sawtooth`
+
+### Linear
+
+These are generated with the PYO [LinTable][] class.
+
+- `square_line`
+- `triangle_line`
+- `sawtooth_line`
+
+### Other
+
+- `passthrough`
+
+  This isn't really a synth; it passes input from a microphone (etc)
+  to your output.  I use this for displaying voices on an attached
+  oscilloscope.
+
+[lintable]: http://ajaxsoundstudio.com/pyodoc/api/classes/tables.html#lintable
+[harmtable]: http://ajaxsoundstudio.com/pyodoc/api/classes/tables.html#harmtable
 
 ## PYO: Notes for developers
 
