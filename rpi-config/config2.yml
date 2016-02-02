@@ -8,9 +8,6 @@ devices:
   input:
     name: USB Audio Device
     channels: 1
-  input:
-    name: USB Audio Device
-    channels: 1
   output:
     name: USB Audio Device
 

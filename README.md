@@ -175,13 +175,9 @@ example:
 your script causes siggen to exit (see the `rpi-config` directory for
 an example), you should probably be careful around this.
 
-## Notes for developers
+## PYO: Notes for developers
 
-Just some miscellaneous notes about my experiences writing this
-software.
-
-### PYO
-
+### "Invalid number of channels"
 While PYO is very flexible and has well designed abstractions, it can
 be a little fragile.  In particular, it doesn't seem to do a very good
 job of introspecting the capabilities of audio devices, such that you
@@ -204,6 +200,18 @@ which case you want:
     >>> from pyo import *
     >>> s = Server(ichnls=1).boot()
 
+### Event loop locking up
+
+I ran into a problem on my Raspberry Pi in which the PYO event loop
+would lock up and stop all event processing.  This appears to be
+related to combined size of the wave tables.  With the default PYO
+table size of 8192 samples, PYO would lock up if there was more than a
+single table.
+
+Reducing the number of samples to 1024 allowed things to work.
+
+### Configuring input/output devices
+
 If you want to specify explicit input or output devices, you must do
 this *before* calling the `boot()` method.  For example:
 
@@ -212,10 +220,11 @@ this *before* calling the `boot()` method.  For example:
     >>> s.setInputDevice(11)
     >>> s.boot()
 
+### PYO and Pulseaudio
+
 PYO does not play well with others.  In particular, if your system is
 running [Pulseaudio][], be prepared for some really bizarre behavior
 as input or outputs seem to go randomly missing, making code that
 worked moments ago fail mysteriously.
 
 [pulseaudio]: http://www.freedesktop.org/wiki/Software/PulseAudio/
-
