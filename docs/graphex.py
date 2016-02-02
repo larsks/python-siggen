@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 # This extracts doctest examples from the given document and, if they
-# produce a 'waveform' variable, generates a graph of the waveform and
-# saves it to a file.
+# provide a specific target variable, produces plots of the contents of
+# that variable using matplotlib.
 
 import argparse
 import logging
@@ -12,18 +12,18 @@ from doctest import DocTestParser, Example
 LOG = logging.getLogger(__name__)
 
 
-def graph(exnum, ctx, output, width=None, height=None):
+def graph(exnum, ctx, var, output, width=None, height=None):
     '''Use matplotlib to graph the context of
-    ctx['waveform'].'''
+    ctx[var].'''
 
     global args
     LOG.info('graphing example %d', exnum)
 
-    if 'waveform' not in ctx:
-        LOG.warn('no waveform in example %d', exnum)
+    if var not in ctx:
+        LOG.warn('no data in example %d', exnum)
         return
 
-    LOG.info('plotting waveform for example %d', exnum)
+    LOG.info('plotting data from example %d', exnum)
     kwargs = {}
     if width and height:
         kwargs['figsize'] = (width, height)
@@ -32,7 +32,7 @@ def graph(exnum, ctx, output, width=None, height=None):
 
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
-    ax.plot(ctx['waveform'])
+    ax.plot(ctx[var])
     fig.savefig(output % exnum)
 
 
@@ -55,6 +55,7 @@ def parse_args():
                    default='example%d.svg')
 
     p.add_argument('input')
+    p.add_argument('var')
 
     p.set_defaults(loglevel='WARN')
     return p.parse_args()
@@ -76,11 +77,11 @@ def main():
     for chunk in chunks:
         if isinstance(chunk, Example):
             exec chunk.source in ctx
-            if 'waveform' in ctx:
+            if args.var in ctx:
                 excount += 1
-                graph(excount, ctx, args.output,
+                graph(excount, ctx, args.var, args.output,
                       width=args.width, height=args.height)
-                del ctx['waveform']
+                del ctx[args.var]
 
 if __name__ == '__main__':
     main()
