@@ -17,21 +17,45 @@ My code barely scratches the surface of what you can do with it.
 ## Configuration
 
 Siggen reads configuration from a [YAML][] format configuration file,
-by default named `signals.yml`.  The file has three main sections:
+by default named `signals.yml`.  The file has the following major
+configuration sections:
 
 [YAML]: http://www.yaml.org/
 
 - `devices`
+
+  This section identifies the sound and MIDI devices used by siggen.
+
 - `controls`
+
+  This section maps MIDI controls to global actions (such as "stop all
+  synths" or "start all synths").
+
+- `synths`
+
+  This section declares the synthesizers that will be instantiated by
+  siggen, and maps MIDI controls to synthesizer attributes such as
+  frequency and volume.
+
 - `mixers`
 
-See below for details.  An example configuration file is included in
-the distribution.
+  This section maps MIDI controls to ALSA audio devices.
+
+- `external`
+
+  This section maps MIDI controls to shell scripts.
+
+- `tables`
+
+  This section sets values used by some of the wavetable generation
+  routines.
+
+An example configuration file is included in the distribution.
 
 ### Devices
 
 The `devices` section identifies the audio and MIDI devices that will
-be used by siggen:
+be used by siggen.  For example:
 
     devices:
       midi:
@@ -50,34 +74,32 @@ see a list of available devices and indexes, you can run:
 
 ### Controls
 
-The `controls` section maps MIDI controls to synthesizer attributes
-(like volume and frequency) and global actions (like `play` and
-`stop`). The various signal generators all have `freq` and `volume`
-keys, while other controls may not.  My configuration looks like this:
+The `controls` section maps MIDI controls to global actions.  For
+example:
 
-    # Map MIDI control change messages to actions
     controls:
-      sine:
+      play: 41
+      stop: 42
+
+### Synths
+
+The `synths` section declares synthesizer.  It is a YAML list of
+dictionaries, each of which must have a `type` key identifying the
+synthesizer type.  For example, the following would create a sine wave
+synth and a square wave synth:
+
+    synths:
+      - type: sine
         freq: 16
         volume: 102
 
-      square:
+      - type: square
         freq: 17
         volume: 103
 
-      triangle:
-        freq: 18
-        volume: 104
-
-      sawtooth:
-        freq: 19
-        volume: 105
-
-      passthrough:
-        volume: 107
-
-      play: 41
-      stop: 42
+Each synth may also specify a `freq` control that will control the
+synthesizer frequency and a `volume` control that will control the
+synthesizer volume.
 
 ### Mixers
 
@@ -121,6 +143,37 @@ devices:
 This attaches MIDI control 108 and 109 to the left and right channels
 of the main output, and then connects control 107 to the Microphone
 volume and control 21 to the Capture volume.
+
+### Tables
+
+The `tables` section specifies values that are used by to create wave
+tables.
+
+- `nharmonics` -- the number of harmonics to use to approximate a
+  signal (defaults to 30).
+
+- `tsize` -- The wave table size.  Defaults to the PYO default of
+  8192, but PYO seems to have problems with this on some systems.
+
+For example:
+
+    tables:
+      tsize: 1024
+
+### External
+
+The `external` section maps MIDI controls to external scripts.  For
+example:
+
+    external:
+      - control: 41
+        script: |
+          #!/bin/sh
+          echo hello world
+
+**WARNING** Running external scripts seems to break PYO, so unless
+your script causes siggen to exit (see the `rpi-config` directory for
+an example), you should probably be careful around this.
 
 ## Notes for developers
 
