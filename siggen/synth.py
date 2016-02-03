@@ -120,23 +120,32 @@ class Synth(object):
         self.pa_inputs, self.pa_outputs = discover_pa_devices()
         self.pm_inputs = discover_pm_devices()
 
-    def pa_input_device_by_name(self, name):
+    def pa_input_device_by_name(self, want):
+        '''Find a portaudio input device by name. Iterate over available
+        devices, looking for first device with a matching prefix.'''
+        want = want.lower()
         for index, info in self.pa_inputs.items():
-            if name in info['name']:
+            if info['name'].lower().startswith(want):
                 return index
 
         raise MissingPAInputDevice(name)
 
     def pa_output_device_by_name(self, want):
+        '''Find a portaudio output device by name. Iterate over available
+        devices, looking for first device with a matching prefix.'''
+        want = want.lower()
         for index, info in self.pa_outputs.items():
-            if want in info['name']:
+            if info['name'].lower().startswith(want):
                 return index
 
         raise MissingPAOutputDevice(want)
 
     def pm_input_device_by_name(self, want):
+        '''Find a portmidi device by name. Iterate over available
+        devices, looking for first device with a matching prefix.'''
+        want = want.lower()
         for index, name in self.pm_inputs.items():
-            if want in name:
+            if name.lower().startswith(want):
                 return index
 
         raise MissingPMInputDevice(want)
