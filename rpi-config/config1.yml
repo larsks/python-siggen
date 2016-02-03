@@ -45,6 +45,6 @@ external:
   - control: 43
     script: |
       #!/bin/sh
-      cd /root/python-siggen/rpi-config
+      cd /home/synth/python-siggen/rpi-config
       ln -sf config2.yml active.yml
-      systemctl restart siggen
+      sudo systemctl restart siggen
