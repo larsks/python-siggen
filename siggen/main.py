@@ -84,15 +84,15 @@ def main():
     midiDevice = config.get('devices', {}).get('midi')
 
     if inputDevice:
-        kwargs['inputDevice'] = inputDevice['name']
+        kwargs['inputDevice'] = inputDevice.get('name')
         kwargs['inputDeviceChannels'] = inputDevice.get('channels')
 
     if outputDevice:
-        kwargs['outputDevice'] = outputDevice['name']
+        kwargs['outputDevice'] = outputDevice.get('name')
         kwargs['outputDeviceChannels'] = outputDevice.get('channels')
 
     if midiDevice and not args.nomidi:
-        kwargs['midiDevice'] = midiDevice['name']
+        kwargs['midiDevice'] = midiDevice.get('name')
 
     s = synth.Synth(
         audio=config.get('devices', {}).get('audio'),
