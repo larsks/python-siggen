@@ -14,6 +14,9 @@ its own [dbus][] session through the use of the [dubs-run-session][]
 command.  This unit does not need to be enabled because it will be
 started on demand by the `siggen` service.
 
+[dbus-run-session]: http://dbus.freedesktop.org/doc/dbus-run-session.1.html
+[dbus]: http://www.freedesktop.org/wiki/Software/dbus/
+
 The `siggen.service` unit will start `siggen` as the synth user.  This
 unit requires the `jackd` service, which will be started automatically
 if you `systemctl start siggen`.  If you want `siggen` to start
@@ -30,6 +33,3 @@ In order to make my USB sound card the default device, I created
 
 This prevents the kernel from loading drivers for the built-in sound
 hardware, which makes the USB sound card the default.
-
-[dbus-run-session]: http://dbus.freedesktop.org/doc/dbus-run-session.1.html
-[dbus]: http://www.freedesktop.org/wiki/Software/dbus/
