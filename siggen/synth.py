@@ -36,6 +36,7 @@ def discover_pm_devices():
 
 class Synth(object):
     def __init__(self,
+                 audio=None,
                  midiDevice=None,
                  outputDevice=None,
                  outputDeviceChannels=None,
@@ -53,6 +54,7 @@ class Synth(object):
         self.mixers = mixers
         self.controls = controls
 
+        self.audio = audio
         self.inputDevice = inputDevice
         self.outputDevice = outputDevice
         self.midiDevice = midiDevice
@@ -70,6 +72,8 @@ class Synth(object):
         self.discover_devices()
 
         kwargs = {}
+        if audio is not None:
+            kwargs['audio'] = audio
         if outputDeviceChannels is not None:
             kwargs['nchnls'] = outputDeviceChannels
         if inputDeviceChannels is not None:
