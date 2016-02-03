@@ -139,14 +139,12 @@ devices:
             FRONT_LEFT: 108
             FRONT_RIGHT: 109
         Mic:
-          output:
-            MONO: 107
           capture:
-            MONO: 21
+            MONO: 20
 
 This attaches MIDI control 108 and 109 to the left and right channels
-of the main output, and then connects control 107 to the Microphone
-volume and control 21 to the Capture volume.
+of the main output, and then connects control 20 to the Mic capture
+volume.
 
 ### Tables
 
@@ -216,54 +214,13 @@ These are generated with the PYO [LinTable][] class.
 
 ## PYO: Notes for developers
 
-### "Invalid number of channels"
-While PYO is very flexible and has well designed abstractions, it can
-be a little fragile.  In particular, it doesn't seem to do a very good
-job of introspecting the capabilities of audio devices, such that you
-will often see something like this:
+The interaction between PYO and portaudio seems a little fragile.  I
+think this may be more of a problem with portaudio, based on where the
+crashes were happening.
 
-    >>> from pyo import *
-    >>> s = Server().boot()
-    [...]
-    Expression 'parameters->channelCount <= maxChans' failed in 'src/hostapi/alsa/pa_linux_alsa.c', line: 1513
-    Expression 'ValidateParameters( inputParameters, hostApi, StreamDirection_In )' failed in 'src/hostapi/alsa/pa_linux_alsa.c', line: 2813
-    portaudio error in Pa_OpenStream: Invalid number of channels
-    Portaudio error: Invalid number of channels
-    Server not booted.
+I ended up switching to [jack][] on my Raspberry Pi, and most of the
+problems I was having with crashing and event loop lockups
+disappeared.
 
-This simply means that you are trying to use a device that doesn't
-support the default number of channels (2).  A common cause of this
-behavior is a mono microphone, which only has a single channel, in
-which case you want:
+[jack]: http://www.jackaudio.org/
 
-    >>> from pyo import *
-    >>> s = Server(ichnls=1).boot()
-
-### Event loop locking up
-
-I ran into a problem on my Raspberry Pi in which the PYO event loop
-would lock up and stop all event processing.  This appears to be
-related to combined size of the wave tables.  With the default PYO
-table size of 8192 samples, PYO would lock up if there was more than a
-single table.
-
-Reducing the number of samples to 1024 allowed things to work.
-
-### Configuring input/output devices
-
-If you want to specify explicit input or output devices, you must do
-this *before* calling the `boot()` method.  For example:
-
-    >>> from pyo import *
-    >>> s = Server()
-    >>> s.setInputDevice(11)
-    >>> s.boot()
-
-### PYO and Pulseaudio
-
-PYO does not play well with others.  In particular, if your system is
-running [Pulseaudio][], be prepared for some really bizarre behavior
-as input or outputs seem to go randomly missing, making code that
-worked moments ago fail mysteriously.
-
-[pulseaudio]: http://www.freedesktop.org/wiki/Software/PulseAudio/
