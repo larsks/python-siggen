@@ -1,0 +1,10 @@
+# This until will start up a jackd server. It is required by
+# siggen.server, such that starting siggen.service will first
+# start the jackd server.
+[Unit]
+Before=sound.target
+
+[Service]
+User=synth
+Type=simple
+ExecStart=/usr/bin/dbus-run-session /usr/bin/jackd -p 16 -t 2000 -d alsa -d hw:CARD=Device,DEV=0 -r 44100 -X seq
