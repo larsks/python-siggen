@@ -38,10 +38,8 @@ mixers:
         FRONT_LEFT: 108
         FRONT_RIGHT: 109
     Mic:
-      output:
-        MONO: 107
       capture:
-        MONO: 21
+        MONO: 20
 
 external:
   - control: 43
