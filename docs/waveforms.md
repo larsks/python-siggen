@@ -8,22 +8,15 @@ specific waveforms can be composed using this method.
 
 ### Equation
 
-A reverse sawtooth waveform can be represented by the following
-equation:
+A sawtooth waveform can be represented by the following equation:
 
 $$
-x_\mathrm{reversesawtooth}(t) = \frac {2}{\pi}\sum_{k=1}^{\infty}
-{(-1)}^{k} \frac {\sin (2\pi kft)}{k}
+x_\mathrm{sawtooth}(t) = -\frac {A}{\pi}\sum_{k=1}^{\infty}\frac {\sin (2\pi kft)}{k} 
 $$
 
-Where $f$ is the frequency of the desired waveform, $k$ is the
-*order*, or number of harmonics to use for the approximation, and $t$
-is time.
-
-We're looking at a *reverse* (or *inverse*) sawtooth waveform because
-this makes things a little more visually obvious; the non-reversed
-version is inverted with respect to the sine waves from which it is
-composed). Both variants sound the same.
+Where $A$ is the amplitude, $f$ is the frequency of the desired
+waveform, $k$ is the *order*, or number of harmonics to use for the
+approximation, and $t$ is time.
 
 ### Code
 
@@ -36,9 +29,9 @@ translation of the above equation into the following Python code:
 >>> from numpy import pi, sin, linspace
 >>> order = 30
 >>> t = linspace(0, pi, 500)
->>> waveform = (2/pi) * sum([
-...     (-1**k) * sin(2 * pi * k * t)/k
-...     for k in range(1, (order+1))
+>>> waveform = -(2/pi) * sum([
+...     sin(2 * pi * k * t)/k
+...     for k in range(1, (order+2))
 ... ])
 >>>
 ```
