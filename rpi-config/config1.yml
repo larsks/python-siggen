@@ -3,13 +3,9 @@ tables:
   tsize: 512
 
 devices:
+  audio: jack
   midi: 
     name: nanoKONTROL2 MIDI 1
-  input:
-    name: USB Audio Device
-    channels: 1
-  output:
-    name: USB Audio Device
 
 synths:
   - type: sine
