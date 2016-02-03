@@ -11,6 +11,8 @@ this project.
 
 [nanokontrol2]: http://www.korg.com/us/products/controllers/nanokontrol2/
 
+![A picture of my project](rpi-synth-small.jpg)
+
 ## Thanks
 
 This project uses [PYO][], a fantastic Python audio processing module.
