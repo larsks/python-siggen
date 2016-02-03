@@ -21,7 +21,7 @@ My code barely scratches the surface of what you can do with it.
 ## Configuration
 
 Siggen reads configuration from a [YAML][] format configuration file,
-by default named `signals.yml`.  The file has the following major
+by default named `siggen.yml`.  The file has the following major
 configuration sections:
 
 [YAML]: http://www.yaml.org/

@@ -29,7 +29,7 @@ def parse_args():
                    dest='loglevel')
 
     p.add_argument('--config', '-f',
-                   default='signals.yml')
+                   default='siggen.yml')
 
     p.add_argument('--nomidi',
                    action='store_true',
