@@ -8,19 +8,19 @@ devices:
     name: nanoKONTROL2 MIDI 1
 
 synths:
-  - type: sine
+  - type: sawtooth
     freq: 16
     volume: 102
 
-  - type: sine
+  - type: sawtooth
     freq: 17
     volume: 103
 
-  - type: sine
+  - type: sawtooth
     freq: 18
     volume: 104
 
-  - type: sine
+  - type: sawtooth
     freq: 19
     volume: 105
 
@@ -43,5 +43,5 @@ external:
     script: |
       #!/bin/sh
       cd /home/synth/python-siggen/rpi-config
-      ln -sf config3.yml active.yml
+      ln -sf config1.yml active.yml
       sudo systemctl restart siggen
