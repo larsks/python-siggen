@@ -1,3 +1,10 @@
+'''Importing this module will disable error output from ALSA.  In a
+typical default ALSA configuration, there will be a variety of errors
+concerning devices configured asound.conf that do not actually exist.
+
+These errors can make it hard to spot actual problems.
+'''
+
 import ctypes
 
 ERROR_HANDLER_FUNC = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_int,

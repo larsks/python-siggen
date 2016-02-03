@@ -18,6 +18,8 @@ LOG = logging.getLogger(__name__)
 
 
 def calc_key_freq(value):
+    '''Given a midi control value, calculate the corresponding piano
+    key and return the appropriate frequency.'''
     key = int((value/127.0) * 88)
     freq = 2 ** ((key-49)/12) * 440
     LOG.debug('freq control value %d -> key %d -> freq %f',
@@ -151,10 +153,13 @@ class Synth(object):
         raise MissingPMInputDevice(want)
 
     def create_synth_sine(self):
+        '''Create a sine wave synthesizer.'''
         self.log.debug('creating sine synth')
         return pyo.Sine(mul=0, freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_square_line(self):
+        '''Create a square wave synthesizer using the PYO
+        LinTable module.'''
         self.log.debug('creating square synth [lintable]')
         t = pyo.LinTable([(0, 1), (8192//2, 1),
                           ((8192//2), -1), (8191, -1)])
@@ -163,6 +168,9 @@ class Synth(object):
                        freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_square(self):
+        '''Create a square wave synthesizer as a sum of sines
+        using the PYO SquareTable module (which internally
+        calls HarmTable).'''
         self.log.debug('creating square synth [additive]')
         t = pyo.SquareTable(order=self.nharmonics, size=self.tsize)
         return pyo.Osc(table=t,
@@ -170,6 +178,8 @@ class Synth(object):
                        freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_sawtooth_line(self):
+        '''Create a sawtooth wave synthesizer using the PYO
+        LinTable module.'''
         self.log.debug('creating sawtooth synth [lintable]')
         t = pyo.LinTable([(0, 1), (8191, -1)])
         return pyo.Osc(table=t,
@@ -177,6 +187,9 @@ class Synth(object):
                        freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_sawtooth(self):
+        '''Create a sawtooth wave synthesizer as a sum of sines
+        using the PYO SawTable module (which internally
+        calls HarmTable).'''
         self.log.debug('creating sawtooth synth [additive]')
         t = pyo.SawTable(order=self.nharmonics, size=self.tsize)
         return pyo.Osc(table=t,
@@ -184,6 +197,8 @@ class Synth(object):
                        freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_triangle_line(self):
+        '''Create a triangle wave synthesizer using the PYO
+        LinTable module.'''
         self.log.debug('creating triangle synth [lintable]')
         t = pyo.LinTable([(0, 0), (8192//4, 1), (8192//2, 0),
                           (3*(8192//4), -1), (8191, 0)])
@@ -192,6 +207,8 @@ class Synth(object):
                        freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_triangle(self):
+        '''Create a sawtooth wave synthesizer as a sum of sines
+        using the PYO HarmTable module.'''
         self.log.debug('creating triangle synth [additive]')
         c = cycle([1, -1])
         l = [next(c)/(i*i) if i % 2 == 1 else 0
@@ -202,11 +219,15 @@ class Synth(object):
                        freq=[FREQ_C4, FREQ_C4])
 
     def create_synth_passthrough(self):
+        '''Create a "synth" that will pass audio on the input channel to 
+        your output channel(s).'''
         self.log.debug('creating passthrough synth')
         i = pyo.Input()
         return pyo.Mix(i, voices=2, mul=0)
 
     def init_synths(self):
+        '''Initialize and start all the synthesizers (with an initial
+        volume of 0).'''
         self._synths = []
         self.log.debug('start init synths')
 
@@ -239,6 +260,7 @@ class Synth(object):
         self.log.debug('done init synths')
 
     def init_listeners(self):
+        '''Initialize handling of midi control messages.'''
         self._listen = {}
 
         c = pyo.RawMidi(self.midi_handler)
@@ -249,6 +271,7 @@ class Synth(object):
         c.out()
 
     def init_controls(self):
+        '''Initialize mapping of midi controls to global actions.'''
         self.log.debug('start init controls')
 
         if 'play' in self.controls:
@@ -292,6 +315,7 @@ class Synth(object):
             partial(self.ctrl_mixer, tag))
 
     def init_mixers(self):
+        '''Initialize handling of ALSA mixer devices.'''
         self._mixer = {}
         self.log.debug('start init mixers')
 
@@ -360,10 +384,14 @@ class Synth(object):
             self._listen[control](value)
 
     def shutdown(self):
+        '''Shut down the sound server.'''
         self.log.info('shutting down sound server')
         self.server.shutdown()
 
     def register_midi_listener(self, control, func):
+        '''Register a new listener _func_ for midi control
+        message _control_. The function will receive the value of the
+        control as an argument.'''
         self.log.debug('registering action for control %d', control)
         if control in self._listen:
             raise AlreadyListening(control)
@@ -371,6 +399,7 @@ class Synth(object):
         self._listen[control] = func
 
     def unregister_midi_listener(self, control):
+        '''Unregister midi listener for the given control.'''
         if control in self._listen:
             self.log.debug('unregistering action for control %d', control)
             del self._listen[control]
