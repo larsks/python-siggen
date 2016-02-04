@@ -98,9 +98,9 @@ def main():
         audio=config.get('devices', {}).get('audio'),
         tsize=config.get('tables', {}).get('tsize'),
         nharmonics=config.get('tables', {}).get('nharmonics'),
-        controls=config['controls'],
-        mixers=config['mixers'],
-        synths=config['synths'],
+        controls=config.get('controls'),
+        mixers=config.get('mixers'),
+        synths=config.get('synths'),
         **kwargs)
 
     if 'external' in config:

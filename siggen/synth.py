@@ -2,7 +2,12 @@ from __future__ import division
 
 from six import string_types
 from functools import partial
-from pyalsa import alsamixer
+
+try:
+    from pyalsa import alsamixer
+except ImportError:
+    alsamixer = None
+
 from itertools import cycle
 import logging
 import pyo
@@ -317,6 +322,10 @@ class Synth(object):
     def init_mixers(self):
         '''Initialize handling of ALSA mixer devices.'''
         self._mixer = {}
+        if alsamixer is None:
+            self.log.warn('no ALSA mixer support')
+            return
+
         self.log.debug('start init mixers')
 
         for mixer_name, mixer in self.mixers.items():
