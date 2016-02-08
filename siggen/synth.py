@@ -249,14 +249,15 @@ class Synth(object):
             self._synths.append(s)
 
             if 'volume' in synth:
-                self.register_midi_listener(
-                    synth['volume'],
-                    partial(self.ctrl_volume, i))
+                m = pyo.Midictl(synth['volume'])
+                m.setInterpolation(False)
+                s.setMul(m)
 
             if 'freq' in synth:
-                self.register_midi_listener(
-                    synth['freq'],
-                    partial(self.ctrl_freq, i))
+                m = pyo.Midictl(synth['freq'], minscale=0, maxscale=127)
+                m.setInterpolation(False)
+                hz = pyo.MToF(m)
+                s.setFreq(hz)
 
         for i, synth in enumerate(self._synths):
             self.log.debug('activating synth %d', i)
@@ -388,7 +389,7 @@ class Synth(object):
         self._synths[synth].setMul(vol)
 
     def midi_handler(self, status, control, value):
-        self.log.debug('midi control %d value %d', control, value)
+        #self.log.debug('midi control %d value %d', control, value)
         if control in self._listen:
             self._listen[control](value)
 
