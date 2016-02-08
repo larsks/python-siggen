@@ -293,14 +293,14 @@ class Synth(object):
         self.log.debug('done init controls')
 
     def ctrl_play(self, value):
-        self.log.info('starting all synths')
         if value:
+            self.log.info('starting all synths')
             for synth in self._synths:
                 synth.out()
 
     def ctrl_stop(self, value):
-        self.log.info('stopping all synths')
         if value:
+            self.log.info('stopping all synths')
             for synth in self._synths:
                 synth.stop()
 
