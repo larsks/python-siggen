@@ -9,8 +9,8 @@ IMAGES = \
 	 triangle-steps.svg \
 	 $(EXAMPLES)
 
-ifdef PUBLISH
-PUBLISHFLAG = -p
+ifdef PUSH
+PUSHFLAG = -p
 endif
 
 ifdef MESSAGE
@@ -43,4 +43,4 @@ clean:
 	rm -f $(IMAGES) $(DOCS) .examples
 
 publish: all
-	ghp-import $(PUBLISHFLAG) $(MESSAGEFLAG) -n -f .
+	ghp-import $(PUSHFLAG) $(MESSAGEFLAG) -n -f .
