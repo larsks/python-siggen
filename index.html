@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="author" content="Lars Kellogg-Stedman lars@oddbit.com">
+  <title>Approximating waveforms via additive synthesis</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header>
+<h1 class="title">Approximating waveforms via additive synthesis</h1>
+<h2 class="author">Lars Kellogg-Stedman <script type="text/javascript">
+<!--
+h='&#x6f;&#100;&#100;&#98;&#x69;&#116;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#108;&#x61;&#114;&#x73;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#108;&#x61;&#114;&#x73;&#32;&#x61;&#116;&#32;&#x6f;&#100;&#100;&#98;&#x69;&#116;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;</noscript></h2>
+</header>
+<p>Additive synthesis is the process of approximating waveforms by adding sine waves together. In this article, I provide some examples of how specific waveforms can be composed using this method.</p>
+<h2 id="sawtooth">Sawtooth</h2>
+<h3 id="equation">Equation</h3>
+<p>A sawtooth waveform can be represented by the following equation:</p>
+<p><span class="math display">\[
+x_\mathrm{sawtooth}(t) = -\frac {A}{\pi}\sum_{k=1}^{\infty}\frac {\sin (2\pi kft)}{k} 
+\]</span></p>
+<p>Where <span class="math inline">\(A\)</span> is the amplitude, <span class="math inline">\(f\)</span> is the frequency of the desired waveform, <span class="math inline">\(k\)</span> is the <em>order</em>, or number of harmonics to use for the approximation, and <span class="math inline">\(t\)</span> is time.</p>
+<h3 id="code">Code</h3>
+<p>Using <a href="http://www.numpy.org/">NumPy</a> we can perform a relatively straightforward translation of the above equation into the following Python code:</p>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> numpy <span class="im">import</span> pi, sin, linspace
+<span class="op">&gt;&gt;&gt;</span> order <span class="op">=</span> <span class="dv">30</span>
+<span class="op">&gt;&gt;&gt;</span> t <span class="op">=</span> linspace(<span class="dv">0</span>, pi, <span class="dv">500</span>)
+<span class="op">&gt;&gt;&gt;</span> waveform <span class="op">=</span> <span class="op">-</span>(<span class="dv">2</span><span class="op">/</span>pi) <span class="op">*</span> <span class="bu">sum</span>([
+...     sin(<span class="dv">2</span> <span class="op">*</span> pi <span class="op">*</span> k <span class="op">*</span> t)<span class="op">/</span>k
+...     <span class="cf">for</span> k <span class="op">in</span> <span class="bu">range</span>(<span class="dv">1</span>, (order<span class="dv">+2</span>))
+... ])
+<span class="op">&gt;&gt;&gt;</span></code></pre></div>
+<h3 id="result">Result</h3>
+<p>The above code results in:</p>
+<p><img src="example1.svg" alt="Results of the sawtooth waveform code" /></p>
+<h3 id="steps">Steps</h3>
+<p>The following figure shows the result of each successive step as <span class="math inline">\(k\)</span> iterates from 1 to 10.</p>
+<p><img src="sawtooth-steps.svg" alt="Successive approximation of a sawtooth waveform" /></p>
+<h2 id="square">Square</h2>
+<h3 id="equation-1">Equation</h3>
+<p><span class="math display">\[
+x_{\mathrm{square}}(t) = \frac{4}{\pi} \sum_{k=1}^\infty
+{\sin{\left (2\pi (2k-1) ft \right )}\over(2k-1)}
+\]</span></p>
+<h3 id="code-1">Code</h3>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> numpy <span class="im">import</span> pi, sin, linspace
+<span class="op">&gt;&gt;&gt;</span> order <span class="op">=</span> <span class="dv">30</span>
+<span class="op">&gt;&gt;&gt;</span> t <span class="op">=</span> linspace(<span class="dv">0</span>, pi, <span class="dv">500</span>)
+<span class="op">&gt;&gt;&gt;</span> waveform <span class="op">=</span> (<span class="dv">4</span><span class="op">/</span>pi) <span class="op">*</span> <span class="bu">sum</span>([
+...   sin(<span class="dv">2</span> <span class="op">*</span> pi <span class="op">*</span> (<span class="dv">2</span> <span class="op">*</span> k <span class="op">-</span> <span class="dv">1</span>) <span class="op">*</span> t)<span class="op">/</span>(<span class="dv">2</span> <span class="op">*</span> k <span class="op">-</span> <span class="dv">1</span>)
+...   <span class="cf">for</span> k <span class="op">in</span> <span class="bu">range</span>(<span class="dv">1</span>, (order<span class="dv">+2</span>))
+... ])
+<span class="op">&gt;&gt;&gt;</span></code></pre></div>
+<h3 id="result-1">Result</h3>
+<p><img src="example2.svg" alt="Results of the square waveform code" /></p>
+<h3 id="steps-1">Steps</h3>
+<p><img src="square-steps.svg" alt="Successive approximation of a square waveform" /></p>
+<h2 id="triangle">Triangle</h2>
+<h3 id="equation-2">Equation</h3>
+<p><span class="math display">\[
+x_\mathrm{triangle}(t) = \frac {8}{\pi^2} \sum_{k=0}^\infty (-1)^k \, \frac{ \sin \left( 2\pi(2k+1) ft \right)}{(2k+1)^2}
+\]</span></p>
+<h3 id="code-2">Code</h3>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> numpy <span class="im">import</span> pi, sin, linspace
+<span class="op">&gt;&gt;&gt;</span> order <span class="op">=</span> <span class="dv">30</span>
+<span class="op">&gt;&gt;&gt;</span> t <span class="op">=</span> linspace(<span class="dv">0</span>, pi, <span class="dv">500</span>)
+<span class="op">&gt;&gt;&gt;</span> waveform <span class="op">=</span> (<span class="dv">8</span><span class="op">/</span>pi<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> <span class="bu">sum</span>([
+...   (<span class="op">-</span><span class="dv">1</span>)<span class="op">**</span>k <span class="op">*</span>
+...   sin(<span class="dv">2</span> <span class="op">*</span> pi <span class="op">*</span> (<span class="dv">2</span> <span class="op">*</span> k <span class="op">+</span> <span class="dv">1</span>) <span class="op">*</span> t)<span class="op">/</span>(<span class="dv">2</span> <span class="op">*</span> k <span class="op">+</span> <span class="dv">1</span>)<span class="op">**</span><span class="dv">2</span>
+...   <span class="cf">for</span> k <span class="op">in</span> <span class="bu">range</span>(<span class="dv">0</span>, (order<span class="dv">+1</span>))
+... ])
+<span class="op">&gt;&gt;&gt;</span></code></pre></div>
+<h3 id="result-2">Result</h3>
+<p><img src="example3.svg" alt="Results of the square waveform code" /></p>
+<h3 id="steps-2">Steps</h3>
+<p><img src="triangle-steps.svg" alt="Successive approximation of a square waveform" /></p>
+</body>
+</html>
