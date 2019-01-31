@@ -1,0 +1,38 @@
+---
+dist: xenial
+sudo: false
+
+language: python
+python:
+    - 3.6
+
+notifications:
+    email: false
+
+branches:
+  except:
+    - gh-pages
+
+addons:
+  apt:
+    packages:
+      - pandoc
+
+before_install:
+  - mkdir -p -m 700 ~/.ssh
+  - base64 -d > ~/.ssh/id_rsa <<<$GH_DEPLOY_KEY
+  - chmod 400 ~/.ssh/id_rsa
+
+install:
+  - pip install ghp-import
+
+script:
+  - true
+
+after_success:
+  - git remote set-url --push origin git@github.com:larsks/python-siggen
+  - make -C docs
+  - >-
+    make -C docs publish
+    PUSH=1
+    MESSAGE="Update from Travis build $TRAVIS_BUILD_NUMBER ($TRAVIS_COMMIT)"
