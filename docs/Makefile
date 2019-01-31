@@ -1,4 +1,4 @@
-DOCS = index.html waveforms.pdf
+DOCS = index.html
 EXAMPLES = \
 	   example1.svg \
 	   example2.svg
