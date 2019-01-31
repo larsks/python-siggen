@@ -24,7 +24,8 @@ before_install:
   - chmod 400 ~/.ssh/id_rsa
 
 install:
-  - pip install ghp-import matplotlib
+  - pip install ghp-import
+  - pip install -r docs/requirements.txt
 
 script:
   - true

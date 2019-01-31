@@ -76,12 +76,13 @@ def main():
     ctx = {}
     for chunk in chunks:
         if isinstance(chunk, Example):
-            exec chunk.source in ctx
+            exec(chunk.source, ctx)
             if args.var in ctx:
                 excount += 1
                 graph(excount, ctx, args.var, args.output,
                       width=args.width, height=args.height)
                 del ctx[args.var]
+
 
 if __name__ == '__main__':
     main()
