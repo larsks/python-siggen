@@ -1,4 +1,8 @@
-# Approximating waveforms via additive synthesis
+---
+title: Approximating waveforms via additive synthesis
+author: 
+  - "Lars Kellogg-Stedman <lars@oddbit.com>"
+---
 
 Additive synthesis is the process of approximating waveforms by adding
 sine waves together.  In this article, I provide some examples of how
